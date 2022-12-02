@@ -1,0 +1,25 @@
+<resources>
+    <string name="app_name">Meter Reader</string>
+    <string name="meter_report_title">Mérőállás bejelentése</string>
+    <string name="dial_frame">Dial frame</string>
+    <string name="gallery_title">Válasszon ki egy képet</string>
+    <string name="take_photo_title">Fénykép készítése</string>
+    <string name="take_photo_description">Készítsen fényképet a mérőállás leolvasásához.</string>
+    <string name="progress_frame_detection">Óraállás helyének meghatározása…</string>
+    <string name="progress_dial_value_detection">Számjegyek leolvasása…</string>
+    <string name="progress_finalization">Eredményképek mentése…</string>
+    <string name="dial_value_detection_error">Hiba történt a számjegyek leolvasása közben.</string>
+    <string name="frame_detection_error">Nem sikerült meghatározni a leolvasás helyét.</string>
+    <string name="try_again">Próbálja újból.</string>
+    <string name="results">Eredmény</string>
+    <string name="details">Részletek</string>
+    <string name="results_description">Sikeres mérőóra leolvasás!\nA dekektált érték: %1$.3f</string>
+    <string name="intent_data_error">Hiba történt az adatok kiolvasása közben.</string>
+    <drawable name="dial_frame">@drawable/number_dial</drawable>
+
+    <string name="info_sigmaX">
+        Teszt leírás\n
+        Ez lesz majd kitöltve a leírással\n
+        Lorem ipsum dolor sit amet
+    </string>
+</resources>

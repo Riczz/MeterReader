@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="SettingComponent">
+        <attr name="propertyName" format="string" />
+        <attr name="infoDescription" format="reference" />
+        <attr name="dbColumnName" format="string" />
+        <attr name="infoImage" format="reference" />
+        <attr name="valueMin" format="float" />
+        <attr name="valueMax" format="float" />
+        <attr name="stepSize" format="float" />
+        <attr name="hint" format="string" />
+    </declare-styleable>
+</resources>

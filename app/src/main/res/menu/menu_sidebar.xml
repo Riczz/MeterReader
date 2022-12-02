@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <group
+        android:id="@+id/menuGroup"
+        android:checkableBehavior="single">
+
+        <item
+            android:id="@+id/meter_report"
+            android:icon="@drawable/ic_gas_meter"
+            android:title="@string/meter_report_title" />
+    </group>
+</menu>

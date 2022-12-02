@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".PreviewActivity">
+
+    <FrameLayout
+        android:id="@+id/previewCarouselContainer"
+        android:layout_width="match_parent"
+        android:layout_height="150dp"
+        android:layout_marginTop="80dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <include layout="@layout/preview_carousel" />
+
+    </FrameLayout>
+
+    <Button
+        android:id="@+id/retryRecognitionButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:layout_marginEnd="10dp"
+        android:text="Retry"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <TextView
+        android:id="@+id/textView2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:text="Eredményképek"
+        android:textSize="34sp"
+        app:layout_constraintBottom_toTopOf="@+id/previewCarouselContainer"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+<!--    <View-->
+<!--        android:id="@+id/divider"-->
+<!--        android:layout_width="40dp"-->
+<!--        android:layout_height="1dp"-->
+<!--        android:background="?android:attr/listDivider"-->
+<!--        android:backgroundTint="@android:color/secondary_text_dark"-->
+<!--        android:foregroundGravity="center"-->
+<!--        app:layout_constraintBottom_toBottomOf="@+id/textView2"-->
+<!--        app:layout_constraintEnd_toStartOf="@+id/textView2"-->
+<!--        app:layout_constraintStart_toStartOf="parent"-->
+<!--        app:layout_constraintTop_toTopOf="@+id/textView2" />-->
+
+<!--    <View-->
+<!--        android:id="@+id/divider2"-->
+<!--        android:layout_width="40dp"-->
+<!--        android:layout_height="1dp"-->
+<!--        android:background="?android:attr/listDivider"-->
+<!--        android:backgroundTint="@android:color/secondary_text_dark"-->
+<!--        android:foregroundGravity="center"-->
+<!--        app:layout_constraintBottom_toBottomOf="@+id/textView2"-->
+<!--        app:layout_constraintEnd_toEndOf="parent"-->
+<!--        app:layout_constraintStart_toEndOf="@+id/textView2"-->
+<!--        app:layout_constraintTop_toTopOf="@+id/textView2" />-->
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="400dp"
+        android:layout_marginStart="10dp"
+        android:layout_marginEnd="10dp"
+        android:layout_marginBottom="5dp"
+        app:layout_constraintBottom_toTopOf="@+id/retryRecognitionButton"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/previewCarouselContainer">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <com.riczz.meterreader.view.SettingSliderComponent
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:infoDescription="@string/info_sigmaX"
+                app:propertyName="Sigma X:"
+                app:stepSize="1.0"
+                app:valueMax="100.0"
+                app:valueMin="0.0" />
+
+            <com.riczz.meterreader.view.SettingSliderComponent
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:infoDescription="@string/info_sigmaX"
+                app:propertyName="Blur Kernel Size:"
+                app:stepSize="2.0"
+                app:valueMax="7.0"
+                app:valueMin="3.0" />
+
+            <com.riczz.meterreader.view.SettingComboBoxComponent
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:infoDescription="@string/info_sigmaX"
+                app:propertyName="Morphology Kernel Type:" />
+
+            <com.riczz.meterreader.view.SettingSliderComponent
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:infoDescription="@string/info_sigmaX"
+                app:propertyName="Threshold Value:" />
+
+            <com.riczz.meterreader.view.SettingSliderComponent
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:infoDescription="@string/info_sigmaX"
+                app:propertyName="Minimum Contour Area:"
+                app:stepSize="10.0"
+                app:valueMax="1000.0"
+                app:valueMin="0.0" />
+
+            <com.riczz.meterreader.view.SettingSliderComponent
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:infoDescription="@string/info_sigmaX"
+                app:propertyName="Maximum circularity:"
+                app:stepSize="0.01"
+                app:valueMax="1.0"
+                app:valueMin="0.0" />
+
+            <com.riczz.meterreader.view.SettingSliderComponent
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:infoDescription="@string/info_sigmaX"
+                app:propertyName="Dial Frame Width Multiplier:"
+                app:stepSize="0.01"
+                app:valueMax="5.0"
+                app:valueMin="1.0" />
+
+            <com.riczz.meterreader.view.SettingComboBoxComponent
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="40dp"
+                app:propertyName="Blur Sigma X:" />
+        </LinearLayout>
+    </ScrollView>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
