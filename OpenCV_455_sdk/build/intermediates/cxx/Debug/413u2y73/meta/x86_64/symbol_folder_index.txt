@@ -1,0 +1,1 @@
+C:\Users\csino\AndroidStudioProjects\MeterReader\OpenCV_455_sdk\build\intermediates\cxx\Debug\413u2y73\obj\x86_64
