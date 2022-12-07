@@ -7,4 +7,4 @@ pluginManagement {
 }
 rootProject.name = "Meter Reader"
 include ':app'
-include ':OpenCV'
+include ':OpenCV_455_sdk'
