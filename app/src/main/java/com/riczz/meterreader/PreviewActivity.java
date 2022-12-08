@@ -11,8 +11,6 @@ import android.os.Handler;
 import android.os.Looper;
 import android.provider.MediaStore;
 import android.util.Log;
-import android.util.Pair;
-import android.view.View;
 import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -20,19 +18,17 @@ import android.widget.ViewFlipper;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.content.res.AppCompatResources;
-import androidx.appcompat.widget.AppCompatImageView;
 import androidx.constraintlayout.helper.widget.Carousel;
 
 import com.riczz.meterreader.config.ConfigHelper;
 import com.riczz.meterreader.exception.FrameDetectionException;
 import com.riczz.meterreader.exception.NumberRecognizationException;
+import com.riczz.meterreader.imageprocessing.ElectricityMeterImageRecognizer;
 import com.riczz.meterreader.imageprocessing.MeterImageRecognizer;
 
 import org.opencv.core.Mat;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -76,8 +72,10 @@ public final class PreviewActivity extends AppCompatActivity {
 
         configHelper = new ConfigHelper(this);
 
+        meterImageRecognizer = getIntent().getBooleanExtra("IS_GAS_METER", true) ?
+                new MeterImageRecognizer(this) : new ElectricityMeterImageRecognizer(this);
+
         progressCircle = progressBar.getIndeterminateDrawable();
-        meterImageRecognizer = new MeterImageRecognizer(this);
         executorService = Executors.newSingleThreadExecutor();
         handler = new Handler(Looper.getMainLooper());
 
@@ -94,10 +92,9 @@ public final class PreviewActivity extends AppCompatActivity {
             try {
                 dialsImage = meterImageRecognizer.detectDialFrame(rawImage);
             } catch (FrameDetectionException e) {
-                Log.e("ASDASD", e.getMessage());
                 Log.e(LOG_TAG, "There was an error during dial frame detection phase.");
                 errorText = getString(R.string.frame_detection_error);
-                showFinishedDialog(false);
+                runOnUiThread(() -> showFinishedDialog(false));
             }
 
             updateProgress(getString(R.string.progress_dial_value_detection));
@@ -112,31 +109,31 @@ public final class PreviewActivity extends AppCompatActivity {
 
             updateProgress(getString(R.string.progress_finalization));
             meterImageRecognizer.saveResultImages();
-            List<Pair<Mat, Uri>> resultImages = new ArrayList<>(meterImageRecognizer.getResultImages().values());
-
-            previewCarousel.setAdapter(new Carousel.Adapter() {
-                @Override
-                public int count() {
-                    return 4;
-                }
-
-                @Override
-                public void populate(View view, int index) {
-                    int previewImageId = getResources().getIdentifier("previewImageView" + index, "id", getPackageName());
-                    AppCompatImageView previewImage = findViewById(previewImageId);
-                    Uri resultImageUri = resultImages.get(index).second;
-
-                    runOnUiThread(() -> {
-                        previewImage.setImageURI(resultImageUri);
-//                        Glide.with(getApplicationContext())
-//                                .load(resultImageUri)
-//                                .into(previewImage);
-                    });
-                }
-
-                @Override
-                public void onNewItem(int index) {}
-            });
+//            List<Pair<Mat, Uri>> resultImages = new ArrayList<>(meterImageRecognizer.getResultImages().values());
+//
+//            previewCarousel.setAdapter(new Carousel.Adapter() {
+//                @Override
+//                public int count() {
+//                    return 4;
+//                }
+//
+//                @Override
+//                public void populate(View view, int index) {
+//                    int previewImageId = getResources().getIdentifier("previewImageView" + index, "id", getPackageName());
+//                    AppCompatImageView previewImage = findViewById(previewImageId);
+//                    Uri resultImageUri = resultImages.get(index).second;
+//
+//                    runOnUiThread(() -> {
+//                        previewImage.setImageURI(resultImageUri);
+////                        Glide.with(getApplicationContext())
+////                                .load(resultImageUri)
+////                                .into(previewImage);
+//                    });
+//                }
+//
+//                @Override
+//                public void onNewItem(int index) {}
+//            });
 
 //            //TODO:
 //            for (int i = 0; i <= 4; i++) {
@@ -151,7 +148,7 @@ public final class PreviewActivity extends AppCompatActivity {
 //                });
 //            }
 
-            updateProgress(null);
+            updateProgress("");
             runOnUiThread(this::showFinishedDialog);
         });
     }

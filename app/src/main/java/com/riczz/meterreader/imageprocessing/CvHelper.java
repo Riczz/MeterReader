@@ -1,5 +1,6 @@
 package com.riczz.meterreader.imageprocessing;
 
+import android.graphics.Bitmap;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
@@ -7,6 +8,7 @@ import androidx.annotation.NonNull;
 import com.riczz.meterreader.config.Config;
 
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
+import org.opencv.android.Utils;
 import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
@@ -15,22 +17,25 @@ import org.opencv.core.MatOfInt;
 import org.opencv.core.MatOfPoint;
 import org.opencv.core.MatOfPoint2f;
 import org.opencv.core.Point;
-import org.opencv.core.Range;
 import org.opencv.core.RotatedRect;
 import org.opencv.core.Scalar;
 import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
+import org.tensorflow.lite.DataType;
+import org.tensorflow.lite.support.common.ops.NormalizeOp;
+import org.tensorflow.lite.support.image.ImageProcessor;
+import org.tensorflow.lite.support.image.TensorImage;
+import org.tensorflow.lite.support.image.ops.ResizeOp;
+import org.tensorflow.lite.support.image.ops.TransformToGrayscaleOp;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 public final class CvHelper {
-
     public static void gammaCorrection(Mat src, Mat dst, float gamma) {
         Mat lut = new Mat(1, 256, CvType.CV_8U);
         for (int i = 0; i < 256; i++) lut.put(0, i, (int) (Math.pow(i / 255.0f, 1 / gamma) * 255));
@@ -42,9 +47,12 @@ public final class CvHelper {
         MatOfInt channels = new MatOfInt(0);
         MatOfInt histSize = new MatOfInt(256);
         MatOfFloat histRange = new MatOfFloat(0, 256);
-        Imgproc.calcHist(Collections.singletonList(image), channels, new Mat(), hist, histSize, histRange);
+        List<Mat> src = new ArrayList<>();
+        src.add(image);
 
-        double[] accumulator = new double[histSize.rows()];
+        Imgproc.calcHist(src, channels, new Mat(), hist, histSize, histRange, false);
+
+        double[] accumulator = new double[256];
         accumulator[0] = hist.get(0, 0)[0];
 
         for (int i = 1; i < hist.rows(); i++) {
@@ -58,7 +66,7 @@ public final class CvHelper {
         int minimumGray = 0;
         while (accumulator[minimumGray] < clipHistPercent) ++minimumGray;
 
-        int maximumGray = histSize.rows()-1;
+        int maximumGray = 255;
         while (accumulator[maximumGray] >= (maximum - clipHistPercent)) --maximumGray;
 
         double alpha = 255.0d / (maximumGray - minimumGray);
@@ -69,55 +77,59 @@ public final class CvHelper {
         return converted;
     }
 
-    /**
-     * Checks if the input image is compatible with the neural network model.
-     *
-     * @param image the input image
-     * @return true if the image is compatible.
-     */
-    public boolean isPreprocessed(@NonNull Mat image) {
-        return image.size().equals(MeterImageRecognizer.DIGIT_SHAPE) && image.channels() == 1;
+    public static TensorImage preprocess(@NonNull Bitmap bitmap) {
+        ImageProcessor imageProcessor = new ImageProcessor.Builder()
+                .add(new ResizeOp(28, 28, ResizeOp.ResizeMethod.BILINEAR))
+                .add(new TransformToGrayscaleOp())
+                .add(new NormalizeOp(0, 255))
+                .build();
+
+        TensorImage tensorImage = new TensorImage(DataType.UINT8);
+        tensorImage.load(bitmap);
+        tensorImage = imageProcessor.process(tensorImage);
+        return tensorImage;
     }
 
-    /**
-     * Transforms the image to be compatible with the neural network model.
-     *
-     * @param image the input image
-     * @return the modified image
-     */
-    public Mat preprocess(@NonNull Mat image) {
-        Mat preprocessed = new Mat(image.size(), image.type());
+    public static TensorImage preprocess(@NonNull Mat mat) {
+        Bitmap bitmap = Bitmap.createBitmap(mat.width(), mat.height(), Bitmap.Config.ARGB_8888);
+        Utils.matToBitmap(mat, bitmap, false);
+        return preprocess(bitmap);
+    }
 
-        if (image.channels() > 1) {
-            Imgproc.cvtColor(image, preprocessed, Imgproc.COLOR_BGR2GRAY);
+    public static int argmax(float[] predictionArray) {
+        float max = 0.0f;
+        int idx = -1;
+
+        for (int i = 0; i < predictionArray.length; i++) {
+            float normalizedValue = predictionArray[i] / 255.0f;
+
+            if (normalizedValue > max) {
+                max = normalizedValue;
+                idx = i;
+            }
         }
 
-        Imgproc.resize(preprocessed, preprocessed, MeterImageRecognizer.DIGIT_SHAPE);
-        //TODO:
-//        Core.normalize(preprocessed, preprocessed, 0.0, 1.0, Core.NORM_MINMAX, Core.NORM);
-        return preprocessed;
+        return idx;
     }
 
+    public static double rectangularity(MatOfPoint contour) {
+        RotatedRect minAreaRect = Imgproc.minAreaRect(new MatOfPoint2f(contour.toArray()));
+        double contourArea = Imgproc.contourArea(contour, false);
+        return rectangularity(minAreaRect, contourArea);
+    }
 
     public static double rectangularity(@NonNull RotatedRect rectangle, double contourArea) {
         return contourArea / rectangle.size.area();
     }
-
-    public static double rectangularity(@NonNull RotatedRect rectangle) {
-//        double area = Imgproc.co
-        return 0.0d;
-    }
-
-//    public static double circularity()
 
     @NonNull
     public static RotatedRect stretchRectangle(RotatedRect rotatedRect, double sizeMultiplier) {
         RotatedRect stretched = new RotatedRect(rotatedRect.center, rotatedRect.size, rotatedRect.angle);
 
         if (rotatedRect.size.width > rotatedRect.size.height) {
-            stretched.size.width *= Config.ImgProc.dialFrameWidthMultiplier;
+            stretched.size.width *= sizeMultiplier;
         } else {
-            stretched.size.height *= Config.ImgProc.dialFrameWidthMultiplier;
+            stretched.size.height *= sizeMultiplier;
         }
 
         return stretched;
@@ -219,16 +231,16 @@ public final class CvHelper {
         if (null != cropImage) {
             Size lineMaskSize = new Size(cropImage.width() + 1, cropImage.height() + 1);
             Mat lineMask = new Mat(lineMaskSize, CvType.CV_8UC1);
-            Imgproc.line(lineMask, points[0], points[1], new Scalar(255.0d), 1, Core.LINE_8);
+            Imgproc.line(lineMask, points[0], points[1], new Scalar(255.0d), 1, Imgproc.LINE_8);
             Imgproc.rectangle(lineMask,
                     new Point(1.0d, 1.0d),
                     new Point(cropImage.width() - 1, cropImage.height() -1),
                     new Scalar(0.0d),
                     -1,
-                    Core.LINE_4
+                    Imgproc.LINE_4
             );
 
-            Mat nonzero = Mat.zeros(lineMaskSize, CvType.CV_8UC1);
+            Mat nonzero = new Mat(lineMaskSize, CvType.CV_8UC1, new Scalar(0));
             Core.findNonZero(lineMask, nonzero);
             List<Point> newPoints = new MatOfPoint(nonzero).toList();
 
@@ -242,12 +254,11 @@ public final class CvHelper {
         return points;
     }
 
-    public double[] calculateIQR(double[] values) {
+    public static double[] calculateIQR(double[] values) {
         return calculateIQR(values, 0.0d);
     }
 
-    public double[] calculateIQR(double[] values, double fence) {
-        Arrays.sort(values); //TODO: print
+    public static double[] calculateIQR(double[] values, double fence) {
         DescriptiveStatistics statistics = new DescriptiveStatistics(values);
         double q25 = statistics.getPercentile(25);
         double q75 = statistics.getPercentile(75);
@@ -261,7 +272,7 @@ public final class CvHelper {
         return Math.sqrt(xDiff * xDiff + yDiff * yDiff);
     }
 
-    public double getMiddlepointDistance(double[] line1, double[] line2) {
+    public static double getMiddlepointDistance(double[] line1, double[] line2) {
         Point[][] linePoints = new Point[][] {
                 getLinePoints(line1),
                 getLinePoints(line2)
@@ -276,25 +287,26 @@ public final class CvHelper {
         return euclideanDistance(middlePoints[0], middlePoints[1]);
     }
 
-    public Mat mergeLines(Mat lines, Mat cropImage) {
+//    public static Mat mergeLines(Mat lines, Mat cropImage) {
+    public static Mat mergeLines(List<double[]> lines, Mat cropImage) {
         Set<Integer> modifiedIndexes = new HashSet<>();
         List<double[]> resultLines = new ArrayList<>();
 
-        for (int i = 0; i < lines.cols(); i++) {
+        for (int i = 0; i < lines.size(); i++) {
             if (modifiedIndexes.contains(i)) continue;
 
             List<Double> rhoValues = new ArrayList<>(),
                     thetaValues = new ArrayList<>();
 
-            double[] line1 = lines.get(i, 0);
+            double[] line1 = lines.get(i);
             rhoValues.add(line1[0]);
             thetaValues.add(line1[1]);
 
             // Get rho and theta values from nearby lines
-            for (int j = 1; i < lines.cols(); j++) {
-                double[] line2 = lines.get(j, 0);
+            for (int j = 0; j < lines.size(); j++) {
+                double[] line2 = lines.get(j);
 
-                if (i != j && getMiddlepointDistance(line1, line2) <= 15.0d) {
+                if (i != j && getMiddlepointDistance(line1, line2) <= 15.0d || intersects(line1, line2, cropImage)) {
                     rhoValues.add(line2[0]);
                     thetaValues.add(line2[1]);
                     modifiedIndexes.add(j);
@@ -309,11 +321,18 @@ public final class CvHelper {
 
         // Create result matrix
         // Store the endpoints for each line alongside the rho and theta values for better handling
-        Mat result = new Mat(resultLines.size(), lines.cols() + 2, lines.type());
+        // TODO:
+        Mat result = new Mat(resultLines.size() + 2, 3, CvType.CV_32FC2);
 
-        for (int i = 0; i < result.rows(); i++) {
+        for (int i = 0; i < result.rows() - 2; i++) {
             double[] lineData = resultLines.get(i);
-            Point[] endpoints = getLinePoints(lineData);
+            Point[] endpoints = getLinePoints(lineData, cropImage);
+
+            Log.e("ASD", "DATA " + i);
+            Log.e("ASD", Arrays.toString(lineData));
+            Log.e("ASD", endpoints[0].x + " " + endpoints[0].y);
+            Log.e("ASD", endpoints[1].x + " " + endpoints[1].y);
+            Log.e("ASD", "");
 
             result.put(i, 0, lineData);
             result.put(i, 1, endpoints[0].x, endpoints[0].y);
@@ -329,26 +348,11 @@ public final class CvHelper {
         return new MatOfPoint(rectanglePoints);
     }
 
-//    public static Point[] getLinePoints(double[] line) {
-//        double rho = line[0];
-//        double theta = line[1];
-//        double a = Math.cos(theta);
-//        double b = Math.sin(theta);
-//        double x0 = a * rho;
-//        double y0 = b * rho;
-//
-//        Point[] points = new Point[] {
-//                new Point(Math.round(x0 + 9999f * (-b)), Math.round(y0 + 9999f * a)),
-//                new Point(Math.round(x0 - 9999f * (-b)), Math.round(y0 - 9999f * a))
-//        };
-//
-//        // Sort the points by x coordinate
-//        Arrays.sort(points, Comparator.comparingDouble(p -> p.x));
-//        return points;
-//    }
-//
-//    public static Point[] getLinePoints(double[] line, Mat cropImage) {
-//    }
+    public static double mean(double... values) {
+        DescriptiveStatistics statistics = new DescriptiveStatistics();
+        for (double value : values) statistics.addValue(value);
+        return statistics.getMean();
+    }
 
     public static void drawRectangle(Mat image, @NonNull RotatedRect rectangle, Scalar color, int thickness) {
         Point[] vertices = new Point[4];
@@ -376,6 +380,19 @@ public final class CvHelper {
                 Imgproc.INTER_AREA
         );
         return resized;
+    }
+
+    public static boolean intersects(double[] line1, double[] line2, Mat cropImage) {
+        Point[] line1Points = getLinePoints(line1);
+        Point[] line2Points = getLinePoints(line2);
+        Mat lined1 = Mat.zeros(cropImage.size(), CvType.CV_8UC1);
+        Mat lined2 = lined1.clone();
+        Imgproc.line(lined1, line1Points[0], line1Points[1], new Scalar(255), 1, Imgproc.LINE_8);
+        Imgproc.line(lined2, line2Points[0], line2Points[1], new Scalar(255), 1, Imgproc.LINE_8);
+        Mat result = new Mat();
+        Core.bitwise_and(lined1, lined2, result);
+        double intersections = Core.countNonZero(result);
+        return intersections > 0;
     }
 
     @NonNull

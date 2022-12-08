@@ -1,6 +1,7 @@
 <resources>
     <string name="app_name">Meter Reader</string>
-    <string name="meter_report_title">Mérőállás bejelentése</string>
+    <string name="gas_meter_report_title">Gázóra állás diktálás</string>
+    <string name="electric_meter_report_title">Villanyóra állás diktálás</string>
     <string name="dial_frame">Dial frame</string>
     <string name="gallery_title">Válasszon ki egy képet</string>
     <string name="take_photo_title">Fénykép készítése</string>

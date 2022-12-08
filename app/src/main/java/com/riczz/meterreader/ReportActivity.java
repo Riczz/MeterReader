@@ -35,6 +35,7 @@ public final class ReportActivity extends AppCompatActivity {
     private ImageView imagePreview;
     private LinearLayout dialContainer;
     private Uri previewImageUri;
+    private boolean isGasMeter;
 
     private static final byte NUMBER_OF_DIALS = 8;
     private static final byte NUMBER_OF_WHOLE_DIALS = 5;
@@ -50,6 +51,8 @@ public final class ReportActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_meter_report);
+
+        isGasMeter = getIntent().getBooleanExtra("IS_GAS_METER", true);
 
         dialFrame = findViewById(R.id.dialFrame);
         dialContainer = findViewById(R.id.dials_container);
@@ -108,10 +111,10 @@ public final class ReportActivity extends AppCompatActivity {
                 try {
                     Bitmap previewImage = MediaStore.Images.Media.getBitmap(getContentResolver(), previewImageUri);
                     Log.d(LOG_TAG, "Bitmap image saved successfully. URI: " + previewImageUri);
-//                    imagePreview.setImageBitmap(previewImage);
 
                     Intent intent = new Intent(this, PreviewActivity.class);
                     intent.setData(previewImageUri);
+                    intent.putExtra("IS_GAS_METER", isGasMeter);
                     startActivityForResult(intent, ANALYZE_TAKEN_IMAGE);
                 } catch (Exception e) {
                     Log.e(LOG_TAG, e.getMessage());

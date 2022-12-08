@@ -1,8 +1,8 @@
 package com.riczz.meterreader.imageprocessing;
 
+import android.app.Activity;
 import android.content.Context;
 import android.graphics.Bitmap;
-import android.net.Uri;
 import android.util.Log;
 import android.util.Pair;
 
@@ -24,28 +24,42 @@ import org.opencv.core.RotatedRect;
 import org.opencv.core.Scalar;
 import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
+import org.opencv.ximgproc.Ximgproc;
+import org.tensorflow.lite.DataType;
+import org.tensorflow.lite.Interpreter;
+import org.tensorflow.lite.support.common.FileUtil;
+import org.tensorflow.lite.support.image.TensorImage;
+import org.tensorflow.lite.support.tensorbuffer.TensorBuffer;
 
+import java.io.IOException;
+import java.nio.MappedByteBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 public class MeterImageRecognizer implements IMeterImageRecognizer {
 
-    public static final Size DIGIT_SHAPE = new Size(28, 28);
     private static final String LOG_TAG = MeterImageRecognizer.class.getName();
+    protected static final String TFLITE_MODEL_ASSET_PATH = "dial_model.tflite";
 
-    private final Context context;
-    private final ImageHandler imageHandler;
-    private final Map<ImageType, Pair<Mat, Uri>> resultImages;
+    protected Interpreter tflite;
+    protected final ImageHandler imageHandler;
+    protected final Map<Pair<Mat, String>, ImageType> resultImages;
 
     public MeterImageRecognizer(Context context) {
-        this.context = context;
         this.imageHandler = new ImageHandler(context);
-        this.resultImages = new EnumMap<>(ImageType.class);
+        this.resultImages = new HashMap<>();
+
+        try {
+            tflite = new Interpreter(loadModelFile((Activity) context));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public Mat detectDialFrame(Bitmap image) throws FrameDetectionException {
@@ -98,7 +112,7 @@ public class MeterImageRecognizer implements IMeterImageRecognizer {
                     contouredOriginal,
                     String.valueOf(i + 1),
                     new Point(boundingRect.x, boundingRect.y),
-                    Core.FONT_HERSHEY_SIMPLEX,
+                    Imgproc.FONT_HERSHEY_SIMPLEX,
                     0.5,
                     new Scalar(255, 0, 255), 2
             );
@@ -109,10 +123,6 @@ public class MeterImageRecognizer implements IMeterImageRecognizer {
             MatOfPoint2f contourPoints = new MatOfPoint2f(contour.toArray());
             double area = Imgproc.contourArea(contour, false);
             double perimeter = Imgproc.arcLength(contourPoints, true);
-
-            //TODO:
-            Log.e("ASD", "CIRCUL: " + 1d / ((Math.pow(perimeter, 2d) / area)));
-            Log.e("ASD", "AREA: " + area);
 
             if (area < Config.ImgProc.minDialArea) {
                 return false;
@@ -142,9 +152,6 @@ public class MeterImageRecognizer implements IMeterImageRecognizer {
             if (rectangularity > maxRectangularity) {
                 maxRectangularity = rectangularity;
                 dialContour = contour;
-
-                Log.e("ASD", "RECTANG: " + rectangularity);
-                Log.e("ASD", "AREA: " + area);
             }
         }
 
@@ -171,14 +178,13 @@ public class MeterImageRecognizer implements IMeterImageRecognizer {
             Log.d(LOG_TAG, String.format("Whole dials rectangle is likely too small. Dark intensity ratio: %.2f",
                     darkIntensityRatio));
             Log.d(LOG_TAG, String.format("Extending whole dial width by %df %%\n",
-                    (int)(Config.ImgProc.digitFrameExtensionMultiplier - 1.0d) * 100));
+                    (int) (Config.ImgProc.digitFrameExtensionMultiplier - 1.0d) * 100));
 
             Mat previousPoints = new Mat();
             Imgproc.boxPoints(wholeDialsRect, previousPoints);
             extendedDialRect = CvHelper.stretchRectangle(extendedDialRect, Config.ImgProc.digitFrameExtensionMultiplier);
 
-            darkIntensityRatio = findDials(image, redDialFrame.getMinAreaRect(), extendedDialRect,
-                    wholeDialsRect, previousPoints);
+            darkIntensityRatio = findDials(image, redDialFrame.getMinAreaRect(), extendedDialRect, wholeDialsRect, previousPoints);
         }
 
         Mat modified = image.clone();
@@ -189,7 +195,7 @@ public class MeterImageRecognizer implements IMeterImageRecognizer {
         Point[] wholeDialPoints = CvHelper.orderRectPoints(wholeDialsRect);
         Point[] redDialPoints = CvHelper.orderRectPoints(redDialFrame.getMinAreaRect());
 
-        Point[] pointsToWarp = new Point[] {
+        Point[] pointsToWarp = new Point[]{
                 wholeDialPoints[0],
                 redDialPoints[1],
                 wholeDialPoints[2],
@@ -198,21 +204,22 @@ public class MeterImageRecognizer implements IMeterImageRecognizer {
 
         Mat warped = CvHelper.warpBirdsEye(image, pointsToWarp, image.width(), Config.ImgProc.DIAL_IMAGE_HEIGHT);
 
-        resultImages.put(ImageType.IMAGE_RESIZED, Pair.create(image, null));
-        resultImages.put(ImageType.IMAGE_MORPHED, Pair.create(morphedImage, null));
-        resultImages.put(ImageType.IMAGE_BLURRED, Pair.create(blurredImage, null));
-        resultImages.put(ImageType.IMAGE_BGMAX, Pair.create(bgMax, null));
-        resultImages.put(ImageType.IMAGE_SUBTRACTED, Pair.create(subtracted, null));
-        resultImages.put(ImageType.IMAGE_CONTOURED, Pair.create(contoured, null));
-        resultImages.put(ImageType.IMAGE_CANNY, Pair.create(cannyImage, null));
-        resultImages.put(ImageType.IMAGE_TRESHOLDED, Pair.create(thresholdImage, null));
-        resultImages.put(ImageType.IMAGE_DILATED, Pair.create(dilatedImage, null));
-        resultImages.put(ImageType.IMAGE_MODIFIED, Pair.create(modified, null));
-        resultImages.put(ImageType.IMAGE_WARPED, Pair.create(warped, null));
+        resultImages.put(Pair.create(image, "Resized"), ImageType.FRAME_DETECTION);
+        resultImages.put(Pair.create(morphedImage, "Morphed"), ImageType.FRAME_DETECTION);
+        resultImages.put(Pair.create(blurredImage, "Blurred"), ImageType.FRAME_DETECTION);
+        resultImages.put(Pair.create(bgMax, "BGMax"), ImageType.FRAME_DETECTION);
+        resultImages.put(Pair.create(subtracted, "Subtracted"), ImageType.FRAME_DETECTION);
+        resultImages.put(Pair.create(contoured, "Contoured"), ImageType.FRAME_DETECTION);
+        resultImages.put(Pair.create(cannyImage, "Canny"), ImageType.FRAME_DETECTION);
+        resultImages.put(Pair.create(thresholdImage, "Thresholded"), ImageType.FRAME_DETECTION);
+        resultImages.put(Pair.create(dilatedImage, "Dilated"), ImageType.FRAME_DETECTION);
+        resultImages.put(Pair.create(modified, "Modified"), ImageType.FRAME_DETECTION);
+        resultImages.put(Pair.create(warped, "Warped"), ImageType.FRAME_DETECTION);
 
         try {
             Mat corrected = correctSkew(warped);
-            resultImages.put(ImageType.IMAGE_CORRECTED, Pair.create(corrected, null));
+            resultImages.put(Pair.create(corrected, "Corrected"), ImageType.FRAME_DETECTION);
+            return corrected;
         } catch (SkewnessCorrectionException e) {
             e.printStackTrace();
         }
@@ -222,7 +229,7 @@ public class MeterImageRecognizer implements IMeterImageRecognizer {
 
     private Mat correctSkew(Mat image) throws SkewnessCorrectionException {
         Mat gray = new Mat();
-        Imgproc.cvtColor(image, gray, Imgproc.COLOR_BGR2GRAY);
+        Imgproc.cvtColor(image, gray, Imgproc.COLOR_RGB2GRAY);
 
         Mat thresholded = new Mat();
         Imgproc.threshold(gray, thresholded, 0.0d, 255.0d, Imgproc.THRESH_OTSU);
@@ -245,7 +252,6 @@ public class MeterImageRecognizer implements IMeterImageRecognizer {
 
         for (int i = 0; i < lines.rows(); i++) {
             double angle = Math.toDegrees(lines.get(i, 0)[1]);
-            Log.d(LOG_TAG, "ANGLE: " + angle);
             if (angle >= 90.0f - Config.ImgProc.maxSkewnessDeg && angle <= 90.0f + Config.ImgProc.maxSkewnessDeg) {
                 filteredLines.add(lines.get(i, 0));
             }
@@ -260,22 +266,25 @@ public class MeterImageRecognizer implements IMeterImageRecognizer {
 
         for (double[] line : filteredLines) {
             Point[] linePoints = CvHelper.getLinePoints(line);
-            Imgproc.line(linedImage, linePoints[0], linePoints[1], new Scalar(255.0d, 0d, 0d, 255.0d), 1, Imgproc.LINE_AA);
+            Imgproc.line(linedImage, linePoints[0], linePoints[1],
+                    new Scalar(255.0d, 0d, 0d, 255.0d), 1, Imgproc.LINE_AA);
         }
 
         double[] strongestLine = filteredLines.get(0);
         Point[] strongestPoints = CvHelper.getLinePoints(strongestLine);
-        Imgproc.line(linedImage, strongestPoints[0], strongestPoints[1], new Scalar(255.0d, 255.0d, 0d, 255.0d), 3, Imgproc.LINE_AA);
+
+        Imgproc.line(linedImage, strongestPoints[0], strongestPoints[1],
+                new Scalar(255.0d, 255.0d, 0d, 255.0d), 3, Imgproc.LINE_AA);
 
         double skewness = 90.0d - Math.toDegrees(strongestLine[1]);
         Log.d(LOG_TAG, String.format("Skewness amount: %.16f\n", skewness));
 
         Mat skewnessCorrected = CvHelper.rotate(image, -skewness);
-        resultImages.put(ImageType.SKEWNESS_THRESHOLDED, Pair.create(thresholded, null));
-        resultImages.put(ImageType.SKEWNESS_MORPH_OPEN, Pair.create(morphOpen, null));
-        resultImages.put(ImageType.SKEWNESS_MORPH_CLOSE, Pair.create(morphClose, null));
-        resultImages.put(ImageType.SKEWNESS_CANNY, Pair.create(canny, null));
-        resultImages.put(ImageType.SKEWNESS_LINES, Pair.create(linedImage, null));
+        resultImages.put(Pair.create(thresholded, "Thresholded"), ImageType.SKEWNESS_CORRECTION);
+        resultImages.put(Pair.create(morphOpen, "MorphOpen"), ImageType.SKEWNESS_CORRECTION);
+        resultImages.put(Pair.create(morphClose, "MorphClose"), ImageType.SKEWNESS_CORRECTION);
+        resultImages.put(Pair.create(canny, "Canny"), ImageType.SKEWNESS_CORRECTION);
+        resultImages.put(Pair.create(linedImage, "Lines"), ImageType.SKEWNESS_CORRECTION);
         return skewnessCorrected;
     }
 
@@ -289,8 +298,7 @@ public class MeterImageRecognizer implements IMeterImageRecognizer {
     public double findDials(
             Mat image, RotatedRect redDialRect, RotatedRect searchRect,
             RotatedRect dst, Mat resultPoints
-    ) throws FrameDetectionException
-    {
+    ) throws FrameDetectionException {
         Mat searchMask = Mat.zeros(image.size(), CvType.CV_8UC1);
         Imgproc.fillConvexPoly(searchMask, CvHelper.getPointsMatFromRect(searchRect), new Scalar(255.0d), Imgproc.LINE_AA);
         Imgproc.fillConvexPoly(searchMask, CvHelper.getPointsMatFromRect(redDialRect), new Scalar(0d), Imgproc.LINE_AA);
@@ -359,8 +367,9 @@ public class MeterImageRecognizer implements IMeterImageRecognizer {
             }
         }
 
-        resultImages.put(ImageType.DIAL_SEARCH_MASK, Pair.create(morphed, null));
-        resultImages.put(ImageType.DIAL_SEARCH_CANNY, Pair.create(cannyImage, null));
+        resultImages.put(Pair.create(morphed, "Morphed"), ImageType.DIAL_SEARCH);
+        resultImages.put(Pair.create(cannyImage, "Canny"), ImageType.DIAL_SEARCH);
+        int maskCount = 0;
 
         for (MatOfPoint contour : contours) {
             MatOfPoint2f contourPointsMat = new MatOfPoint2f(contour.toArray());
@@ -368,12 +377,12 @@ public class MeterImageRecognizer implements IMeterImageRecognizer {
             Mat contourMask = searchMask.submat(contourRect.boundingRect());
 
             if (contourMask.channels() == 3) {
-                Imgproc.cvtColor(contourMask, contourMask, Imgproc.COLOR_BGR2GRAY);
+                Imgproc.cvtColor(contourMask, contourMask, Imgproc.COLOR_RGB2GRAY);
             }
 
             // Crop image part specified by the contour
             Mat cropped = image.submat(contourRect.boundingRect());
-            Imgproc.cvtColor(cropped, cropped, Imgproc.COLOR_BGR2HSV);
+            Imgproc.cvtColor(cropped, cropped, Imgproc.COLOR_RGB2HSV);
 
             // Count the dark intensities on the cropped image
             // Return the one which has the most dark areas
@@ -386,15 +395,13 @@ public class MeterImageRecognizer implements IMeterImageRecognizer {
             Core.bitwise_and(cropped, cropped, cropped, contourMask);
             int darkIntensityCount = Core.countNonZero(cropped);
 
-            Log.e("ASD", "DARK: " + darkIntensityCount);
-
             if (darkIntensityCount > darkIntensityCountMax) {
-                resultImages.put(ImageType.DIAL_SEARCH_CROPPED, Pair.create(cropped, null));
                 darkIntensityCountMax = darkIntensityCount;
                 darkIntensityRatio = (double) darkIntensityCount / Core.countNonZero(contourMask);
                 dialFrameRect = contourRect;
             }
 
+            resultImages.put(Pair.create(cropped, "Cropped_" + maskCount++), ImageType.DIAL_SEARCH);
         }
 
         dst.set(new double[]{
@@ -440,10 +447,10 @@ public class MeterImageRecognizer implements IMeterImageRecognizer {
         Mat result = new Mat();
         Imgproc.cvtColor(merged, result, Imgproc.COLOR_Lab2RGB);
 
-        resultImages.put(ImageType.CORRECTION_MEDIAN, Pair.create(median, null));
-        resultImages.put(ImageType.CORRECTION_B_C, Pair.create(corrected, null));
-        resultImages.put(ImageType.CORRECTION_GAMMA, Pair.create(gammaCorrected, null));
-        resultImages.put(ImageType.CORRECTION_RESULT, Pair.create(result, null));
+        resultImages.put(Pair.create(median, "Median"), ImageType.COLOR_CORRECTION);
+        resultImages.put(Pair.create(corrected, "Auto_BG"), ImageType.COLOR_CORRECTION);
+        resultImages.put(Pair.create(gammaCorrected, "Gamma"), ImageType.COLOR_CORRECTION);
+        resultImages.put(Pair.create(result, "Result"), ImageType.COLOR_CORRECTION);
         return result;
     }
 
@@ -451,14 +458,20 @@ public class MeterImageRecognizer implements IMeterImageRecognizer {
         Size imageSize = image.size();
         Mat corrected = preprocessFrameImage(image);
 
-        //tresh niblack
+        if (corrected.channels() != 1) {
+            Imgproc.cvtColor(corrected, corrected, Imgproc.COLOR_RGB2GRAY);
+        }
+
+        Mat niblack = new Mat();
+        Ximgproc.niBlackThreshold(corrected, niblack, 255, Imgproc.THRESH_BINARY,
+                129, 0.4, Ximgproc.BINARIZATION_NICK);
 
         // Morphological opening to get rid of noise
         List<Mat> morphImages = new ArrayList<>();
         morphImages.add(new Mat());
 
         Mat morphKernel = Imgproc.getStructuringElement(Imgproc.MORPH_ELLIPSE, new Size(6, 12));
-        Imgproc.morphologyEx(thresholded, morphImages.get(0), Imgproc.MORPH_OPEN, morphKernel, new Point(-1, -1));
+        Imgproc.morphologyEx(niblack.clone(), morphImages.get(0), Imgproc.MORPH_OPEN, morphKernel, new Point(-1, -1));
 
         // Morphological closing to connect the dials vertically
         morphImages.add(new Mat());
@@ -528,31 +541,40 @@ public class MeterImageRecognizer implements IMeterImageRecognizer {
                 .collect(Collectors.toList());
 
         if (contours.size() < Config.ImgProc.numberOfDigits) {
-            throw new NumberRecognizationException("Could detect all digits.");
+            throw new NumberRecognizationException("Could not detect all digits.");
         }
 
         // Get meter dial readings
-        List<Mat> detectedDigits = new ArrayList<>();
         StringBuilder digitsValue = new StringBuilder();
         Mat resultMask = new Mat(contoured.size(), CvType.CV_8UC1);
         Mat result = morphImages.get(2).clone();
+        Imgproc.cvtColor(result, result, Imgproc.COLOR_GRAY2RGB);
 
         for (int i = 0; i < contours.size(); i++) {
             Rect boundingRect = Imgproc.boundingRect(contours.get(i));
             Mat cropped = image.submat(boundingRect);
 
-            // make prediction TODO:
-            String prediction = "1";
+            // Make prediction
+            TensorBuffer probabilityBuffer = TensorBuffer.createFixedSize(new int[]{1, 40}, DataType.FLOAT32);
+            TensorImage dialTensorImage = CvHelper.preprocess(cropped);
+            tflite.run(dialTensorImage.getBuffer(), probabilityBuffer.getBuffer());
+
+            String prediction = String.valueOf(CvHelper.argmax(probabilityBuffer.getFloatArray()));
+            digitsValue.append(prediction);
+
+            if ("-1".equals(prediction)) {
+                throw new NumberRecognizationException("There was an error during digit image prediction.");
+            }
 
             // Add label
-            Mat croppedMask = new Mat(imageSize, CvType.CV_8UC1, new Scalar(0));
+            Mat croppedMask = new Mat(imageSize, CvType.CV_8UC1, new Scalar(0, 0, 0));
             Imgproc.rectangle(croppedMask,
                     new Point(boundingRect.x, boundingRect.y),
                     new Point(boundingRect.x + boundingRect.width, boundingRect.y + boundingRect.height),
-                    new Scalar(255), -1);
-            result.setTo(cropped, croppedMask);
+                    new Scalar(255, 255, 255), -1);
+            image.copyTo(result, croppedMask);
 
-            Size textSize = Imgproc.getTextSize(prediction, Core.FONT_HERSHEY_SIMPLEX, 0.75d, 2, null);
+            Size textSize = Imgproc.getTextSize(prediction, Imgproc.FONT_HERSHEY_SIMPLEX, 0.75d, 2, null);
 
             Imgproc.rectangle(result,
                     new Point(boundingRect.x, boundingRect.y),
@@ -560,19 +582,16 @@ public class MeterImageRecognizer implements IMeterImageRecognizer {
                     new Scalar(0, 255, 0), 2);
 
             Imgproc.rectangle(result,
-                    new Point(boundingRect.x, boundingRect.y - 20),
+                    new Point(boundingRect.x - 1, boundingRect.y - 20),
                     new Point(boundingRect.x + textSize.width, boundingRect.y),
                     new Scalar(0, 255, 0), -1);
 
             Imgproc.putText(result, prediction,
-                    new Point(boundingRect.x, boundingRect.y - 5),
-                    Core.FONT_HERSHEY_SIMPLEX, 0.6d, new Scalar(255, 0, 0), 2);
+                    new Point(boundingRect.x + 2, boundingRect.y - 4),
+                    Imgproc.FONT_HERSHEY_SIMPLEX, 0.6d, new Scalar(255, 0, 0), 2);
 
             Mat dialImage = new Mat();
             Imgproc.resize(cropped, dialImage, new Size(64, 64), 0, 0, Imgproc.INTER_AREA);
-
-            detectedDigits.add(dialImage);
-            digitsValue.append(prediction);
 
             // Make mask to clean up result image
             Imgproc.rectangle(resultMask,
@@ -585,8 +604,8 @@ public class MeterImageRecognizer implements IMeterImageRecognizer {
                     new Point(boundingRect.x + boundingRect.width, boundingRect.y + boundingRect.height),
                     new Scalar(255), 2);
 
-            Imgproc.rectangle(result,
-                    new Point(boundingRect.x, boundingRect.y - 20),
+            Imgproc.rectangle(resultMask,
+                    new Point(boundingRect.x - 1, boundingRect.y - 20),
                     new Point(boundingRect.x + textSize.width, boundingRect.y),
                     new Scalar(255), -1);
         }
@@ -594,16 +613,25 @@ public class MeterImageRecognizer implements IMeterImageRecognizer {
         // Clean up result image
         Core.bitwise_and(result, result, resultMask);
 
-        double digitResult;
+        // Save output images
+        resultImages.put(Pair.create(niblack, "Niblack"), ImageType.DIGIT_DETECTION);
+        resultImages.put(Pair.create(morphImages.get(0), "Morphed"), ImageType.DIGIT_DETECTION);
+        resultImages.put(Pair.create(morphImages.get(1), "Contoured_orig"), ImageType.DIGIT_DETECTION);
+        resultImages.put(Pair.create(contoured, "Contoured"), ImageType.DIGIT_DETECTION);
+        resultImages.put(Pair.create(morphImages.get(2), "Connected"), ImageType.DIGIT_DETECTION);
+        resultImages.put(Pair.create(result, "Result"), ImageType.DIGIT_DETECTION);
 
+        // Return detected dial value or throw exception in case of failure
         if (digitsValue.length() == 0) {
             throw new NumberRecognizationException("Could not detect any digits on the image.");
         } else {
-            digitResult = Float.parseFloat(digitsValue.toString()) / Math.pow(10, Config.ImgProc.fractionalDigits);
-            Log.d(LOG_TAG, String.format("Detected digits:\n%s ==> %f", digitsValue, digitResult));
-        }
+            double digitResult =
+                    Float.parseFloat(digitsValue.toString()) /
+                            Math.pow(10, Config.ImgProc.fractionalDigits);
 
-        return digitResult;
+            Log.d(LOG_TAG, String.format("Detected digits:\n%s ==> %f", digitsValue, digitResult));
+            return digitResult;
+        }
     }
 
     public double getDialReadings(Bitmap bitmap) throws NumberRecognizationException {
@@ -613,21 +641,11 @@ public class MeterImageRecognizer implements IMeterImageRecognizer {
     }
 
     public void saveResultImages() {
-        for (Map.Entry<ImageType, Pair<Mat, Uri>> entry : resultImages.entrySet()) {
-            saveImage(entry.getKey(), entry.getValue().first);
-        }
+        resultImages.forEach((key, imageType) ->
+                imageHandler.saveImage(key.first, imageType, key.second.toLowerCase(Locale.ROOT)));
     }
 
-    private void saveImage(ImageType imageType, Mat image) {
-        saveImage(imageType, image, imageType.name());
-    }
-
-    private void saveImage(ImageType imageType, Mat image, String fileName) {
-        Uri resultURI = imageHandler.saveImage(image, fileName);
-        resultImages.put(imageType, Pair.create(image, resultURI));
-    }
-
-    public Map<ImageType, Pair<Mat, Uri>> getResultImages() {
-        return resultImages;
+    protected MappedByteBuffer loadModelFile(Activity activity) throws IOException {
+        return FileUtil.loadMappedFile(activity, TFLITE_MODEL_ASSET_PATH);
     }
 }

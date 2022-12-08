@@ -1,36 +1,25 @@
 package com.riczz.meterreader.enums;
 
+import java.util.Locale;
+
 public enum ImageType {
-    IMAGE_RESIZED,
-    IMAGE_MORPHED,
-    IMAGE_BLURRED,
-    IMAGE_BGMAX,
-    IMAGE_SUBTRACTED,
-    IMAGE_TRESHOLDED,
-    IMAGE_DILATED,
-    IMAGE_CANNY,
-    IMAGE_CONTOURED,
+    FRAME_DETECTION("Frame detection"),
+    DIAL_SEARCH("Dial search"),
+    SKEWNESS_CORRECTION("Skewness correction"),
+    COLOR_CORRECTION("Color correction"),
+    DIGIT_DETECTION("Digit detection");
 
-    IMAGE_MODIFIED,
-    IMAGE_WARPED,
-    MASK_DIALS,
-    IMAGE_CORRECTED,
+    private final String name;
 
-    DIAL_SEARCH_MASK,
-    DIAL_SEARCH_CANNY,
-    DIAL_SEARCH_CROPPED,
+    ImageType(String name) {
+        this.name = name;
+    }
 
-    SKEWNESS_THRESHOLDED,
-    SKEWNESS_MORPH_OPEN,
-    SKEWNESS_MORPH_CLOSE,
-    SKEWNESS_CANNY,
-    SKEWNESS_LINES,
+    public String getName() {
+        return name;
+    }
 
-    CORRECTION_MEDIAN,
-    CORRECTION_B_C,
-    CORRECTION_GAMMA,
-    CORRECTION_RESULT,
-
-    DIGITDETECT_DENOISED,
-
+    public String getFolderName() {
+        return name.toLowerCase(Locale.ROOT).trim().replace(' ', '_');
+    }
 }

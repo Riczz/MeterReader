@@ -20,6 +20,10 @@ public final class MainActivity extends AppCompatActivity {
     private MaterialToolbar topAppbar;
     private NavigationView navigationView;
 
+    static {
+        System.loadLibrary("opencv_java4");
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -44,8 +48,14 @@ public final class MainActivity extends AppCompatActivity {
             item.setChecked(true);
             drawerLayout.close();
 
-            if (item.getItemId() == R.id.meter_report) {
-                startActivity(new Intent(this, ReportActivity.class));
+            Intent intent = new Intent(this, ReportActivity.class);
+
+            if (item.getItemId() == R.id.gas_meter_report) {
+                intent.putExtra("IS_GAS_METER", true);
+                startActivity(intent);
+            } else if (item.getItemId() == R.id.electric_meter_report) {
+                intent.putExtra("IS_GAS_METER", false);
+                startActivity(intent);
             }
 
             return true;

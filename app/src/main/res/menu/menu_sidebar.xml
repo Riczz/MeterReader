@@ -1,12 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
-<menu xmlns:android="http://schemas.android.com/apk/res/android">
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
     <group
         android:id="@+id/menuGroup"
         android:checkableBehavior="single">
 
         <item
-            android:id="@+id/meter_report"
+            android:id="@+id/gas_meter_report"
             android:icon="@drawable/ic_gas_meter"
-            android:title="@string/meter_report_title" />
+            android:title="@string/gas_meter_report_title"
+            app:showAsAction="always" />
+
+        <item
+            android:id="@+id/electric_meter_report"
+            android:icon="@drawable/ic_electric_meter"
+            android:title="@string/electric_meter_report_title"
+            app:showAsAction="always"/>
     </group>
 </menu>
