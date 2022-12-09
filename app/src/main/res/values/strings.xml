@@ -1,7 +1,8 @@
 <resources>
+    <!--  UI Elements  -->
     <string name="app_name">Meter Reader</string>
-    <string name="gas_meter_report_title">Gázóra állás diktálás</string>
-    <string name="electric_meter_report_title">Villanyóra állás diktálás</string>
+    <string name="gas_meter_report_title">Gázóra állás leolvasás</string>
+    <string name="electric_meter_report_title">Villanyóra állás leolvasás</string>
     <string name="dial_frame">Dial frame</string>
     <string name="gallery_title">Válasszon ki egy képet</string>
     <string name="take_photo_title">Fénykép készítése</string>
@@ -10,17 +11,33 @@
     <string name="progress_dial_value_detection">Számjegyek leolvasása…</string>
     <string name="progress_finalization">Eredményképek mentése…</string>
     <string name="dial_value_detection_error">Hiba történt a számjegyek leolvasása közben.</string>
-    <string name="frame_detection_error">Nem sikerült meghatározni a leolvasás helyét.</string>
+    <string name="frame_detection_error">Hiba történt a leolvasás helyének meghatározása közben.</string>
     <string name="try_again">Próbálja újból.</string>
     <string name="results">Eredmény</string>
-    <string name="details">Részletek</string>
+    <string name="options">Beállítások</string>
     <string name="results_description">Sikeres mérőóra leolvasás!\nA dekektált érték: %1$.3f</string>
     <string name="intent_data_error">Hiba történt az adatok kiolvasása közben.</string>
     <drawable name="dial_frame">@drawable/number_dial</drawable>
 
+    <!--  Error messages  -->
+    <string name="error_code_101">Nem sikerült meghatározni az utolsó három számjegyet körülvevő vörös keret helyét.</string>
+    <string name="error_code_103">Nem sikerült meghatározni az egész számjegyeket befoglaló téglalapot.</string>
+    <string name="error_code_104">Nem sikerült detektálni az összes számjegyet.</string>
+    <string name="error_code_105">A számjegy felismerés hibás cimkét adott vissza.</string>
+    <string name="error_code_106">Nem sikerült detektálni egyetlen számjegyet sem.</string>
+    <string name="error_code_201">Nem sikerült meghatározni az utolsó, vörös háttérszínű számjegy helyét.</string>
+    <string name="error_code_202">Hiba történt az utolsó, vörös háttérszínű számjegy befoglaló téglalapjának meghatározásakor.</string>
+    <string name="results_failed_code">Hiba %1$d</string>
+    <string name="error_dropdown_header">Részletek</string>
+    <string name="error_code_notfound">Ismeretlen hibakód.</string>
+
+    <!--  Parameter descriptions  -->
     <string name="info_sigmaX">
         Teszt leírás\n
         Ez lesz majd kitöltve a leírással\n
         Lorem ipsum dolor sit amet
     </string>
+
+    <!--  Misc -->
+    <string name="error_details_dropdown_desc">Error details dropdown arrow</string>
 </resources>

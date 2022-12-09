@@ -41,6 +41,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 public class MeterImageRecognizer implements IMeterImageRecognizer {
 
@@ -136,7 +137,7 @@ public class MeterImageRecognizer implements IMeterImageRecognizer {
         Imgproc.drawContours(contoured, contours, -1, new Scalar(255, 0, 0), 2);
 
         if (contours.size() == 0) {
-            throw new FrameDetectionException("No suitable contours have been found on the image!");
+            throw new FrameDetectionException("No suitable contours have been found on the image!", 101);
         }
 
         // Get the contour of the red dial frame
@@ -259,7 +260,7 @@ public class MeterImageRecognizer implements IMeterImageRecognizer {
 
         if (filteredLines.isEmpty()) {
             Log.d(LOG_TAG, "No lines found on warped image. Image correction skipped.");
-            throw new SkewnessCorrectionException("Could not do skewness correction on image.");
+            throw new SkewnessCorrectionException("Could not do skewness correction on image.", 102);
         } else {
             Log.d(LOG_TAG, "Total lines found on warped image: " + filteredLines.size());
         }
@@ -346,7 +347,7 @@ public class MeterImageRecognizer implements IMeterImageRecognizer {
         }
 
         if (contours.isEmpty()) {
-            throw new FrameDetectionException("Could not find whole dials frame!");
+            throw new FrameDetectionException("Could not find whole dials frame!", 103);
         }
 
         RotatedRect dialFrameRect = new RotatedRect();
@@ -541,7 +542,7 @@ public class MeterImageRecognizer implements IMeterImageRecognizer {
                 .collect(Collectors.toList());
 
         if (contours.size() < Config.ImgProc.numberOfDigits) {
-            throw new NumberRecognizationException("Could not detect all digits.");
+            throw new NumberRecognizationException("Could not detect all digits.", 104);
         }
 
         // Get meter dial readings
@@ -559,11 +560,12 @@ public class MeterImageRecognizer implements IMeterImageRecognizer {
             TensorImage dialTensorImage = CvHelper.preprocess(cropped);
             tflite.run(dialTensorImage.getBuffer(), probabilityBuffer.getBuffer());
 
-            String prediction = String.valueOf(CvHelper.argmax(probabilityBuffer.getFloatArray()));
+            int predictionValue = CvHelper.argmax(probabilityBuffer.getFloatArray());
+            String prediction = String.valueOf(predictionValue);
             digitsValue.append(prediction);
 
-            if ("-1".equals(prediction)) {
-                throw new NumberRecognizationException("There was an error during digit image prediction.");
+            if (predictionValue > 9 || predictionValue < 0) {
+                throw new NumberRecognizationException("There was an error during digit image prediction.", 105);
             }
 
             // Add label
@@ -623,7 +625,7 @@ public class MeterImageRecognizer implements IMeterImageRecognizer {
 
         // Return detected dial value or throw exception in case of failure
         if (digitsValue.length() == 0) {
-            throw new NumberRecognizationException("Could not detect any digits on the image.");
+            throw new NumberRecognizationException("Could not detect any digits on the image.", 106);
         } else {
             double digitResult =
                     Float.parseFloat(digitsValue.toString()) /

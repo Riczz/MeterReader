@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:minHeight="100dp">
+
+    <Button
+        android:id="@+id/errorDetailsButton"
+        style="@style/Widget.AppCompat.Button.Borderless"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/expandable_layout"
+        android:layout_alignStart="@+id/errorDetailsHeader"
+        android:layout_alignEnd="@+id/errorDetailsArrow"
+        android:layout_alignParentTop="true"
+        android:layout_marginStart="-15dp"
+        android:layout_marginEnd="-15dp"
+        android:alpha="0"
+        android:backgroundTint="@android:color/transparent"
+        android:clickable="true"
+        android:drawableTint="@android:color/transparent"
+        android:enabled="true"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
+        android:foregroundTint="@android:color/transparent"
+        android:minHeight="48dp"
+        android:shadowColor="@android:color/transparent"
+        android:shadowRadius="0"
+        android:textColor="@android:color/transparent"
+        android:translationZ="0dp"
+        android:visibility="visible"
+        app:rippleColor="@android:color/transparent"
+        app:strokeColor="@android:color/transparent"
+        tools:ignore="SpeakableTextPresentCheck" />
+
+    <TextView
+        android:id="@+id/errorDetailsHeader"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:layout_marginStart="25dp"
+        android:layout_marginTop="15dp"
+        android:clickable="false"
+        android:focusable="false"
+        android:focusableInTouchMode="false"
+        android:textColor="@color/cardview_dark_background"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:translationZ="1dp" />
+
+    <ImageView
+        android:id="@+id/errorDetailsArrow"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/expandable_layout"
+        android:layout_alignParentTop="true"
+        android:layout_marginStart="5dp"
+        android:layout_marginTop="15dp"
+        android:layout_toEndOf="@id/errorDetailsHeader"
+        android:adjustViewBounds="true"
+        android:clickable="false"
+        android:contentDescription="@string/error_details_dropdown_desc"
+        android:focusable="false"
+        android:focusableInTouchMode="false"
+        android:scaleType="fitCenter"
+        android:scaleX="1.25"
+        android:scaleY="1.25"
+        android:translationZ="1dp"
+        app:srcCompat="@drawable/ic_dropdown_arrow"
+        app:tint="@color/green_400"
+        tools:ignore="ImageContrastCheck" />
+
+    <net.cachapa.expandablelayout.ExpandableLayout
+        android:id="@+id/expandable_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/errorDetailsHeader"
+        android:layout_marginStart="25dp"
+        android:layout_marginEnd="25dp"
+        app:el_duration="100"
+        app:el_expanded="false"
+        app:el_parallax="0.5">
+
+        <TextView
+            android:id="@+id/errorTextView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+    </net.cachapa.expandablelayout.ExpandableLayout>
+
+</RelativeLayout>

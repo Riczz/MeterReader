@@ -11,7 +11,9 @@ import android.os.Handler;
 import android.os.Looper;
 import android.provider.MediaStore;
 import android.util.Log;
+import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.ViewFlipper;
@@ -21,10 +23,14 @@ import androidx.appcompat.content.res.AppCompatResources;
 import androidx.constraintlayout.helper.widget.Carousel;
 
 import com.riczz.meterreader.config.ConfigHelper;
+import com.riczz.meterreader.exception.BaseException;
 import com.riczz.meterreader.exception.FrameDetectionException;
 import com.riczz.meterreader.exception.NumberRecognizationException;
+import com.riczz.meterreader.imageprocessing.DropdownListener;
 import com.riczz.meterreader.imageprocessing.ElectricityMeterImageRecognizer;
 import com.riczz.meterreader.imageprocessing.MeterImageRecognizer;
+
+import net.cachapa.expandablelayout.ExpandableLayout;
 
 import org.opencv.core.Mat;
 
@@ -48,6 +54,8 @@ public final class PreviewActivity extends AppCompatActivity {
     private TextView progressText;
     private Uri rawImageUri;
     private ViewFlipper viewFlipper;
+    private Dialog resultDialog;
+    private BaseException exception;
 
     private Mat dialsImage;
     private MeterImageRecognizer meterImageRecognizer;
@@ -91,20 +99,26 @@ public final class PreviewActivity extends AppCompatActivity {
 
             try {
                 dialsImage = meterImageRecognizer.detectDialFrame(rawImage);
-            } catch (FrameDetectionException e) {
+            } catch (Exception e) {
                 Log.e(LOG_TAG, "There was an error during dial frame detection phase.");
+                exception = e instanceof FrameDetectionException ?
+                        (FrameDetectionException)e : new FrameDetectionException(-1);
                 errorText = getString(R.string.frame_detection_error);
                 runOnUiThread(() -> showFinishedDialog(false));
+                return;
             }
 
             updateProgress(getString(R.string.progress_dial_value_detection));
 
             try {
                 dialsValue = meterImageRecognizer.getDialReadings(dialsImage);
-            } catch (NumberRecognizationException e) {
+            } catch (Exception e) {
                 Log.e(LOG_TAG, "There was an error during dial numbers detection phase.");
+                exception = e instanceof  NumberRecognizationException ?
+                        (NumberRecognizationException)e : new NumberRecognizationException(-1);
                 errorText = getString(R.string.dial_value_detection_error);
                 runOnUiThread(() -> showFinishedDialog(false));
+                return;
             }
 
             updateProgress(getString(R.string.progress_finalization));
@@ -159,11 +173,11 @@ public final class PreviewActivity extends AppCompatActivity {
 
     private void showFinishedDialog(boolean success) {
         Intent resultIntent = new Intent();
-        AlertDialog.Builder resultDialog = new AlertDialog.Builder(this)
-                .setTitle(getString(R.string.results));
+        AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(this);
 
         if (success) {
-            resultDialog
+            dialogBuilder
+                    .setTitle(getString(R.string.results))
                     .setMessage(String.format(getString(R.string.results_description), dialsValue))
                     .setPositiveButton(android.R.string.ok, (dialog, i) -> {
                         dialog.dismiss();
@@ -171,25 +185,64 @@ public final class PreviewActivity extends AppCompatActivity {
                         setResult(RESULT_OK, resultIntent);
                         finish();
                     })
-                    .setNegativeButton(getString(R.string.details), (dialog, i) -> {
+                    .setNegativeButton(getString(R.string.options), (dialog, i) -> {
                         dialog.dismiss();
                         resultIntent.putExtra("DIALS_VALUE", dialsValue);
                         setResult(RESULT_OK, resultIntent);
                         viewFlipper.setDisplayedChild(1);
-                    });
-        } else {
-            resultDialog
-                    .setMessage(errorText)
-                    .setPositiveButton(android.R.string.ok, (dialog, i) -> {
-                        dialog.dismiss();
+                    }).setOnCancelListener(dialogInterface -> {
                         setResult(RESULT_CANCELED);
                         finish();
                     });
+        } else {
+            View dialogView = getLayoutInflater().inflate(R.layout.error_description, null);
+
+            dialogBuilder
+                    .setTitle(getString(R.string.results_failed_code, exception.getErrorCode()))
+                    .setMessage(errorText)
+                    .setView(dialogView)
+                    .setPositiveButton(android.R.string.ok, (dialog, i) -> {
+                        dialog.dismiss();
+                        resultIntent.putExtra("DIALS_VALUE", dialsValue);
+                        setResult(RESULT_OK, resultIntent);
+                        finish();
+                    })
+                    .setNegativeButton(getString(R.string.options), (dialog, i) -> {
+                        dialog.dismiss();
+                        resultIntent.putExtra("DIALS_VALUE", dialsValue);
+                        setResult(RESULT_OK, resultIntent);
+                        viewFlipper.setDisplayedChild(1);
+                    }).setOnCancelListener(dialogInterface -> {
+                        setResult(RESULT_CANCELED);
+                        finish();
+                    });
+
+            ImageView errorDropdownArrow = dialogView.findViewById(R.id.errorDetailsArrow);
+            ExpandableLayout errorDescription = dialogView.findViewById(R.id.expandable_layout);
+            DropdownListener dropdownListener = new DropdownListener(errorDescription, errorDropdownArrow);
+
+            Button errorDetailsDropdownButton = dialogView.findViewById(R.id.errorDetailsButton);
+            errorDetailsDropdownButton.setOnClickListener(dropdownListener);
+
+            TextView errorDetailsHeader = dialogView.findViewById(R.id.errorDetailsHeader);
+            errorDetailsHeader.setText(getString(R.string.error_dropdown_header));
+            ((TextView)dialogView.findViewById(R.id.errorTextView))
+                    .setText(BaseException.getDetails(this, exception.getErrorCode()));
         }
 
-        Dialog dialog = resultDialog.create();
-        dialog.setCanceledOnTouchOutside(false);
-        dialog.show();
+        resultDialog = dialogBuilder.create();
+        resultDialog.setCanceledOnTouchOutside(false);
+        resultDialog.show();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+
+        if (null != resultDialog && resultDialog.isShowing()) {
+            resultDialog.dismiss();
+            resultDialog = null;
+        }
     }
 
     private void updateProgress(String text) {

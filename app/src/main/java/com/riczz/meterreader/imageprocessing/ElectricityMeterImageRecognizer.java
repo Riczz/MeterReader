@@ -154,8 +154,6 @@ public class ElectricityMeterImageRecognizer extends MeterImageRecognizer implem
             Imgproc.rectangle(hsv, new Point(0, 0), new Point(hsv.width(), hsv.height()),
                     new Scalar(0, 0, 0), 2, Imgproc.LINE_AA);
 
-            imageHandler.saveImage(hsv, ImageType.FRAME_DETECTION, "HSV_" + i);
-
             // Remove noise
             Mat morphKernel = Imgproc.getStructuringElement(Imgproc.MORPH_ELLIPSE, new Size(5, 5));
             Mat morphed = new Mat();
@@ -186,7 +184,7 @@ public class ElectricityMeterImageRecognizer extends MeterImageRecognizer implem
 
         if (null == redDialRect) {
             Log.e(LOG_TAG, "Error! Could not detect red dial frame.");
-            throw new FrameDetectionException("Could not detect red dial frame!");
+            throw new FrameDetectionException("Could not detect red dial frame!", 201);
         }
 
         // Red dial mask
@@ -204,7 +202,7 @@ public class ElectricityMeterImageRecognizer extends MeterImageRecognizer implem
 
         if (contours.isEmpty()) {
             Log.e(LOG_TAG, "Error! No contours have been found.");
-            throw new FrameDetectionException("Error while getting red dial minAreaRect");
+            throw new FrameDetectionException("Error while getting red dial minAreaRect", 202);
         }
 
         RotatedRect dialMinAreaRect = Imgproc.minAreaRect(new MatOfPoint2f(contours.get(0).toArray()));
@@ -244,7 +242,7 @@ public class ElectricityMeterImageRecognizer extends MeterImageRecognizer implem
         Mat modified = image.clone();
         CvHelper.drawRectangle(modified, extendedDialRect, new Scalar(255, 0, 0), 1);
         CvHelper.drawRectangle(modified, dialMinAreaRect, new Scalar(255, 255, 0), 2);
-        CvHelper.drawRectangle(modified, wholeDialsRect, new Scalar(255, 0, 0), 3);
+        CvHelper.drawRectangle(modified, wholeDialsRect, new Scalar(0, 0, 255), 3);
 
         // Create warped image
         Point[] wholeDialPoints = CvHelper.orderRectPoints(wholeDialsRect);
@@ -262,9 +260,12 @@ public class ElectricityMeterImageRecognizer extends MeterImageRecognizer implem
 
         resultImages.put(Pair.create(image, "Resized"), ImageType.FRAME_DETECTION);
         resultImages.put(Pair.create(median, "Blurred"), ImageType.FRAME_DETECTION);
+        resultImages.put(Pair.create(canny, "Canny"), ImageType.FRAME_DETECTION);
         resultImages.put(Pair.create(linedImage, "Lines_orig"), ImageType.FRAME_DETECTION);
         resultImages.put(Pair.create(filteredLineImage, "Lines_filtered"), ImageType.FRAME_DETECTION);
-        resultImages.put(Pair.create(canny, "Canny"), ImageType.FRAME_DETECTION);
+        resultImages.put(Pair.create(regionMask, "Region_mask"), ImageType.FRAME_DETECTION);
+        resultImages.put(Pair.create(redDialMask, "Red_dial_mask"), ImageType.FRAME_DETECTION);
+        resultImages.put(Pair.create(modified, "Modified"), ImageType.FRAME_DETECTION);
         resultImages.put(Pair.create(warped, "Warped"), ImageType.FRAME_DETECTION);
         resultImages.put(Pair.create(corrected, "Corrected"), ImageType.FRAME_DETECTION);
         return corrected;
