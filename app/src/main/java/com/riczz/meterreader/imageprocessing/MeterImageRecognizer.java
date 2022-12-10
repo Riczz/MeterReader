@@ -6,11 +6,14 @@ import android.graphics.Bitmap;
 import android.util.Log;
 import android.util.Pair;
 
-import com.riczz.meterreader.config.Config;
+import com.riczz.meterreader.database.model.Config;
+import com.riczz.meterreader.database.model.GasMeterConfig;
 import com.riczz.meterreader.enums.ImageType;
+import com.riczz.meterreader.enums.MeterType;
 import com.riczz.meterreader.exception.FrameDetectionException;
 import com.riczz.meterreader.exception.NumberRecognizationException;
 import com.riczz.meterreader.exception.SkewnessCorrectionException;
+import com.riczz.meterreader.imageprocessing.utils.DialFrame;
 
 import org.opencv.android.Utils;
 import org.opencv.core.Core;
@@ -41,20 +44,30 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 public class MeterImageRecognizer implements IMeterImageRecognizer {
 
     private static final String LOG_TAG = MeterImageRecognizer.class.getName();
     protected static final String TFLITE_MODEL_ASSET_PATH = "dial_model.tflite";
+    protected static final int DIAL_IMAGE_HEIGHT = 400;
+    private static final Scalar HSV_BLACK_INTENSITY_LOWER = new Scalar(0, 0, 0);
+    private static final Scalar HSV_BLACK_INTENSITY_UPPER = new Scalar(180, 255, 120);
 
     protected Interpreter tflite;
     protected final ImageHandler imageHandler;
     protected final Map<Pair<Mat, String>, ImageType> resultImages;
+    protected final MeterType meterType;
+    protected final Config config;
 
-    public MeterImageRecognizer(Context context) {
+    public MeterImageRecognizer(Context context, Config config) {
+        this(context, MeterType.GAS, config);
+    }
+
+    public MeterImageRecognizer(Context context, MeterType meterType, Config config) {
         this.imageHandler = new ImageHandler(context);
         this.resultImages = new HashMap<>();
+        this.meterType = meterType;
+        this.config = config;
 
         try {
             tflite = new Interpreter(loadModelFile((Activity) context));
@@ -125,13 +138,13 @@ public class MeterImageRecognizer implements IMeterImageRecognizer {
             double area = Imgproc.contourArea(contour, false);
             double perimeter = Imgproc.arcLength(contourPoints, true);
 
-            if (area < Config.ImgProc.minDialArea) {
+            if (area < config.getMinDialArea()) {
                 return false;
             }
 
             MatOfPoint2f approxCurve = new MatOfPoint2f();
             Imgproc.approxPolyDP(contourPoints, approxCurve, 0.03 * perimeter, true);
-            return CvHelper.circularity(contourPoints) <= Config.ImgProc.maxCircularity && approxCurve.rows() == 4;
+            return CvHelper.circularity(contourPoints) <= ((GasMeterConfig) config).getMaxCircularity() && approxCurve.rows() == 4;
         }).collect(Collectors.toList());
 
         Imgproc.drawContours(contoured, contours, -1, new Scalar(255, 0, 0), 2);
@@ -165,7 +178,7 @@ public class MeterImageRecognizer implements IMeterImageRecognizer {
         // Get the search rectangle frame by extending the red frame horizontally
         RotatedRect extendedDialRect = CvHelper.stretchRectangle(
                 redDialFrame.getMinAreaRect(),
-                Config.ImgProc.dialFrameWidthMultiplier
+                config.getDialFrameWidthMultiplier()
         );
 
         // Check which side contains the rest of the dial numbers
@@ -174,16 +187,16 @@ public class MeterImageRecognizer implements IMeterImageRecognizer {
         double darkIntensityRatio = findDials(image, redDialFrame.getMinAreaRect(), extendedDialRect, wholeDialsRect);
         int extensionCount = 0;
 
-        while (darkIntensityRatio > Config.ImgProc.maxBlackIntensityRatio &&
-                extensionCount++ < Config.ImgProc.digitFrameMaxExtensionCount) {
-            Log.d(LOG_TAG, String.format("Whole dials rectangle is likely too small. Dark intensity ratio: %.2f",
-                    darkIntensityRatio));
-            Log.d(LOG_TAG, String.format("Extending whole dial width by %df %%\n",
-                    (int) (Config.ImgProc.digitFrameExtensionMultiplier - 1.0d) * 100));
+        while (darkIntensityRatio > config.getMaxBlackIntensityRatio() &&
+                extensionCount++ < config.getDigitFrameMaxExtensionCount()) {
+            Log.d(LOG_TAG, String.format("Whole dials rectangle is likely too small. Dark intensity ratio: %.2f", darkIntensityRatio));
+            Log.d(LOG_TAG, String.format("Extending whole dial width by %d %%\n",
+                    (int) ((config.getDigitFrameExtensionMultiplier() - 1.0d) * 100))
+            );
 
             Mat previousPoints = new Mat();
             Imgproc.boxPoints(wholeDialsRect, previousPoints);
-            extendedDialRect = CvHelper.stretchRectangle(extendedDialRect, Config.ImgProc.digitFrameExtensionMultiplier);
+            extendedDialRect = CvHelper.stretchRectangle(extendedDialRect, config.getDigitFrameExtensionMultiplier());
 
             darkIntensityRatio = findDials(image, redDialFrame.getMinAreaRect(), extendedDialRect, wholeDialsRect, previousPoints);
         }
@@ -203,7 +216,7 @@ public class MeterImageRecognizer implements IMeterImageRecognizer {
                 redDialPoints[3]
         };
 
-        Mat warped = CvHelper.warpBirdsEye(image, pointsToWarp, image.width(), Config.ImgProc.DIAL_IMAGE_HEIGHT);
+        Mat warped = CvHelper.warpBirdsEye(image, pointsToWarp, image.width(), DIAL_IMAGE_HEIGHT);
 
         resultImages.put(Pair.create(image, "Resized"), ImageType.FRAME_DETECTION);
         resultImages.put(Pair.create(morphedImage, "Morphed"), ImageType.FRAME_DETECTION);
@@ -253,7 +266,7 @@ public class MeterImageRecognizer implements IMeterImageRecognizer {
 
         for (int i = 0; i < lines.rows(); i++) {
             double angle = Math.toDegrees(lines.get(i, 0)[1]);
-            if (angle >= 90.0f - Config.ImgProc.maxSkewnessDeg && angle <= 90.0f + Config.ImgProc.maxSkewnessDeg) {
+            if (angle >= 90.0f - config.getMaxSkewnessDeg() && angle <= 90.0f + config.getMaxSkewnessDeg()) {
                 filteredLines.add(lines.get(i, 0));
             }
         }
@@ -388,8 +401,8 @@ public class MeterImageRecognizer implements IMeterImageRecognizer {
             // Count the dark intensities on the cropped image
             // Return the one which has the most dark areas
             Core.inRange(cropped,
-                    Config.ImgProc.HSV_BLACK_INTENSITY_LOWER,
-                    Config.ImgProc.HSV_BLACK_INTENSITY_UPPER,
+                    HSV_BLACK_INTENSITY_LOWER,
+                    HSV_BLACK_INTENSITY_UPPER,
                     cropped
             );
 
@@ -429,7 +442,7 @@ public class MeterImageRecognizer implements IMeterImageRecognizer {
 
         // Gamma correction
         Mat gammaCorrected = new Mat();
-        CvHelper.gammaCorrection(channels.get(0), gammaCorrected, 3.5f);
+        CvHelper.gammaCorrection(channels.get(0), gammaCorrected, (float) config.getGammaMultiplier());
 
         // Multiply a and b channels
         Mat lut = new Mat(1, 256, CvType.CV_8U);
@@ -457,10 +470,13 @@ public class MeterImageRecognizer implements IMeterImageRecognizer {
 
     public double getDialReadings(Mat image) throws NumberRecognizationException {
         Size imageSize = image.size();
-        Mat corrected = preprocessFrameImage(image);
+        Mat corrected = new Mat(imageSize, image.type());
 
-        if (corrected.channels() != 1) {
+        if (config.isUseColorCorrection()) {
+            corrected = preprocessFrameImage(image);
             Imgproc.cvtColor(corrected, corrected, Imgproc.COLOR_RGB2GRAY);
+        } else {
+            Imgproc.cvtColor(image, corrected, Imgproc.COLOR_RGB2GRAY);
         }
 
         Mat niblack = new Mat();
@@ -473,48 +489,79 @@ public class MeterImageRecognizer implements IMeterImageRecognizer {
 
         Mat morphKernel = Imgproc.getStructuringElement(Imgproc.MORPH_ELLIPSE, new Size(6, 12));
         Imgproc.morphologyEx(niblack.clone(), morphImages.get(0), Imgproc.MORPH_OPEN, morphKernel, new Point(-1, -1));
+        resultImages.put(Pair.create(morphImages.get(0), "Morphed"), ImageType.DIGIT_DETECTION);
+
+        // Get rid of top and bottom border on electricity meter image
+        if (meterType == MeterType.ELECTRIC) {
+            Mat morphImage = morphImages.get(0);
+            Mat borderRemoved = morphImage.clone();
+
+            int thickness = (int) (morphImage.height() * 0.35d);
+            Imgproc.rectangle(borderRemoved,
+                    new Point(-thickness, 0),
+                    new Point(morphImage.width() + thickness, morphImage.height()),
+                    new Scalar(0), thickness, Imgproc.LINE_AA
+            );
+            morphImages.add(borderRemoved);
+            resultImages.put(Pair.create(borderRemoved, "Border removed"), ImageType.DIGIT_DETECTION);
+        }
 
         // Morphological closing to connect the dials vertically
         morphImages.add(new Mat());
         morphKernel = Imgproc.getStructuringElement(Imgproc.MORPH_ELLIPSE, new Size(1, 40));
-        Imgproc.morphologyEx(morphImages.get(0), morphImages.get(1), Imgproc.MORPH_CLOSE, morphKernel, new Point(-1, -1));
+        Imgproc.morphologyEx(
+                morphImages.get(Math.max(0, morphImages.size() - 2)),
+                morphImages.get(morphImages.size() - 1),
+                Imgproc.MORPH_CLOSE, morphKernel,
+                new Point(-1, -1)
+        );
+
+        resultImages.put(
+                Pair.create(morphImages.get(morphImages.size() - 1), "Contoured_orig"),
+                ImageType.DIGIT_DETECTION
+        );
 
         // Contoured image that will contain the filtered contours
         Mat contoured = new Mat(imageSize, CvType.CV_8UC1, new Scalar(0, 0, 0));
 
         // Leave only the possible digit contours on the image
         List<MatOfPoint> contours = new ArrayList<>();
-        Imgproc.findContours(morphImages.get(1), contours, new Mat(), Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_TC89_L1);
+        Imgproc.findContours(
+                morphImages.get(morphImages.size() - 1),
+                contours, new Mat(), Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_TC89_L1
+        );
 
         contours = contours.stream().filter(contour -> {
             Rect boundingRect = Imgproc.boundingRect(contour);
 
-            return (boundingRect.x >= imageSize.width * Config.ImgProc.digitMinBorderDist &&
-                    boundingRect.y >= imageSize.height * Config.ImgProc.digitMinBorderDist &&
-                    boundingRect.x + boundingRect.width <= imageSize.width - (imageSize.width * Config.ImgProc.digitMinBorderDist) &&
-                    boundingRect.y + boundingRect.height <= imageSize.height - (imageSize.height * Config.ImgProc.digitMinBorderDist) &&
-                    boundingRect.width <= Config.ImgProc.digitMaxWidth * imageSize.width &&
-                    boundingRect.height <= Config.ImgProc.digitMaxHeight * imageSize.height);
+            return (boundingRect.x >= imageSize.width * config.getDigitMinBorderDist() &&
+                    boundingRect.y >= imageSize.height * config.getDigitMinBorderDist() &&
+                    boundingRect.x + boundingRect.width <= imageSize.width - (imageSize.width * config.getDigitMinBorderDist()) &&
+                    boundingRect.y + boundingRect.height <= imageSize.height - (imageSize.height * config.getDigitMinBorderDist()) &&
+                    boundingRect.width <= config.getDigitMaxWidthRatio() * imageSize.width &&
+                    boundingRect.height <= config.getDigitMaxHeightRatio() * imageSize.height);
         }).collect(Collectors.toList());
 
         Imgproc.drawContours(contoured, contours, -1, new Scalar(255, 255, 255), -1, Imgproc.LINE_AA);
 
         // Erase the red dial frame from the contoured image to prevent unwanted contours
-        List<Mat> channels = new ArrayList<>();
-        Core.split(image, channels);
+        if (meterType == MeterType.GAS) {
+            List<Mat> channels = new ArrayList<>();
+            Core.split(image, channels);
 
-        Mat bgMax = new Mat();
-        Core.max(channels.get(1), channels.get(2), bgMax);
+            Mat bgMax = new Mat();
+            Core.max(channels.get(1), channels.get(2), bgMax);
 
-        Mat subtracted = new Mat();
-        Core.subtract(channels.get(0), bgMax, subtracted);
+            Mat subtracted = new Mat();
+            Core.subtract(channels.get(0), bgMax, subtracted);
 
-        Mat rectTreshold = new Mat();
-        Imgproc.threshold(subtracted, rectTreshold, 0, 255.0d, Imgproc.THRESH_OTSU);
-        contoured.setTo(new Scalar(0), rectTreshold);
+            Mat rectTreshold = new Mat();
+            Imgproc.threshold(subtracted, rectTreshold, 0, 255.0d, Imgproc.THRESH_OTSU);
+            contoured.setTo(new Scalar(0), rectTreshold);
+        }
 
         // Draw black border on the image to remove possibly unwanted contours
-        int thickness = (int) (contoured.height() * Config.ImgProc.digitBlackBorderThickness);
+        int thickness = (int) (contoured.height() * config.getDigitBlackBorderThickness());
 
         Imgproc.rectangle(contoured,
                 new Point(0, 0), new Point(contoured.width(), contoured.height()),
@@ -524,31 +571,42 @@ public class MeterImageRecognizer implements IMeterImageRecognizer {
         // Connect the digit segments if they were fragmented
         morphImages.add(new Mat());
         morphKernel = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(4, 4));
-        Imgproc.morphologyEx(contoured, morphImages.get(2), Imgproc.MORPH_DILATE, morphKernel, new Point(-1, -1), 3);
+        Imgproc.morphologyEx(
+                contoured, morphImages.get(morphImages.size() - 1),
+                Imgproc.MORPH_DILATE, morphKernel, new Point(-1, -1), 3
+        );
+
+        resultImages.put(
+                Pair.create(morphImages.get(morphImages.size() - 1), "Connected"),
+                ImageType.DIGIT_DETECTION
+        );
 
         // Take the digit contours and order them from left to right
         contours.clear();
-        Imgproc.findContours(morphImages.get(2), contours, new Mat(), Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_TC89_L1);
+        Imgproc.findContours(morphImages.get(morphImages.size() - 1), contours, new Mat(),
+                Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_TC89_L1
+        );
 
         contours = contours.stream()
-                .filter(contour -> Imgproc.contourArea(contour) >= Config.ImgProc.minDialArea)
+                .filter(contour -> Imgproc.contourArea(contour) >= config.getMinDialArea())
                 .sorted(Comparator.comparingDouble(Imgproc::contourArea))
                 .collect(Collectors.toList());
         Collections.reverse(contours);
 
         contours = contours.stream()
-                .limit(Config.ImgProc.numberOfDigits)
+                .limit(meterType.getNumberOfDigits())
                 .sorted(Comparator.comparingInt(contour -> Imgproc.boundingRect(contour).x))
                 .collect(Collectors.toList());
 
-        if (contours.size() < Config.ImgProc.numberOfDigits) {
+        if (contours.size() < meterType.getNumberOfDigits()) {
+            saveResultImages();
             throw new NumberRecognizationException("Could not detect all digits.", 104);
         }
 
         // Get meter dial readings
         StringBuilder digitsValue = new StringBuilder();
         Mat resultMask = new Mat(contoured.size(), CvType.CV_8UC1);
-        Mat result = morphImages.get(2).clone();
+        Mat result = morphImages.get(morphImages.size() - 1).clone();
         Imgproc.cvtColor(result, result, Imgproc.COLOR_GRAY2RGB);
 
         for (int i = 0; i < contours.size(); i++) {
@@ -565,6 +623,7 @@ public class MeterImageRecognizer implements IMeterImageRecognizer {
             digitsValue.append(prediction);
 
             if (predictionValue > 9 || predictionValue < 0) {
+                saveResultImages();
                 throw new NumberRecognizationException("There was an error during digit image prediction.", 105);
             }
 
@@ -617,10 +676,7 @@ public class MeterImageRecognizer implements IMeterImageRecognizer {
 
         // Save output images
         resultImages.put(Pair.create(niblack, "Niblack"), ImageType.DIGIT_DETECTION);
-        resultImages.put(Pair.create(morphImages.get(0), "Morphed"), ImageType.DIGIT_DETECTION);
-        resultImages.put(Pair.create(morphImages.get(1), "Contoured_orig"), ImageType.DIGIT_DETECTION);
         resultImages.put(Pair.create(contoured, "Contoured"), ImageType.DIGIT_DETECTION);
-        resultImages.put(Pair.create(morphImages.get(2), "Connected"), ImageType.DIGIT_DETECTION);
         resultImages.put(Pair.create(result, "Result"), ImageType.DIGIT_DETECTION);
 
         // Return detected dial value or throw exception in case of failure
@@ -629,7 +685,7 @@ public class MeterImageRecognizer implements IMeterImageRecognizer {
         } else {
             double digitResult =
                     Float.parseFloat(digitsValue.toString()) /
-                            Math.pow(10, Config.ImgProc.fractionalDigits);
+                            Math.pow(10, meterType.getFractionalDigits());
 
             Log.d(LOG_TAG, String.format("Detected digits:\n%s ==> %f", digitsValue, digitResult));
             return digitResult;

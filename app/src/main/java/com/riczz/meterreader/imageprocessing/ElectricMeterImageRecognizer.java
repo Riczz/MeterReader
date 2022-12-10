@@ -5,9 +5,12 @@ import android.graphics.Bitmap;
 import android.util.Log;
 import android.util.Pair;
 
-import com.riczz.meterreader.config.Config;
+import com.riczz.meterreader.database.model.Config;
+import com.riczz.meterreader.database.model.ElectricMeterConfig;
 import com.riczz.meterreader.enums.ImageType;
+import com.riczz.meterreader.enums.MeterType;
 import com.riczz.meterreader.exception.FrameDetectionException;
+import com.riczz.meterreader.imageprocessing.utils.LineWithCoords;
 
 import org.opencv.core.Core;
 import org.opencv.core.CvType;
@@ -26,12 +29,14 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class ElectricityMeterImageRecognizer extends MeterImageRecognizer implements IMeterImageRecognizer {
+public final class ElectricMeterImageRecognizer extends MeterImageRecognizer implements IMeterImageRecognizer {
 
-    private static final String LOG_TAG = ElectricityMeterImageRecognizer.class.getName();
+    private static final String LOG_TAG = ElectricMeterImageRecognizer.class.getName();
+    private static final Scalar HSV_RED_INTENSITY_LOWER = new Scalar(150, 20, 100);
+    private static final Scalar HSV_RED_INTENSITY_UPPER = new Scalar(180, 255, 255);
 
-    public ElectricityMeterImageRecognizer(Context context) {
-        super(context);
+    public ElectricMeterImageRecognizer(Context context, Config config) {
+        super(context, MeterType.ELECTRIC, config);
     }
 
     @Override
@@ -67,7 +72,7 @@ public class ElectricityMeterImageRecognizer extends MeterImageRecognizer implem
 
             double angle = Math.toDegrees(line[1]);
 
-            if (90 - Config.ImgProc.maxSkewnessDeg <= angle && angle <= 90 + Config.ImgProc.maxSkewnessDeg) {
+            if (90 - config.getMaxSkewnessDeg() <= angle && angle <= 90 + config.getMaxSkewnessDeg()) {
                 filteredLines.add(line);
             }
         }
@@ -81,14 +86,14 @@ public class ElectricityMeterImageRecognizer extends MeterImageRecognizer implem
                 .collect(Collectors.toList());
 
         // Merge close lines together, add top and bottom lines
-        lines = CvHelper.mergeLines(filteredLines, linedImage);
+        lines = CvHelper.mergeLines(filteredLines, (ElectricMeterConfig)config, linedImage);
 
-        lines.put(lines.rows()-2, 0, 0d, 0d);
-        lines.put(lines.rows()-2, 1, 0, 0);
-        lines.put(lines.rows()-2, 2, image.width() - 1, 0);
-        lines.put(lines.rows()-1, 0, 0d, 0d);
-        lines.put(lines.rows()-1, 1, 0, image.height() - 1);
-        lines.put(lines.rows()-1, 2, image.width() - 1, image.height() - 1);
+        lines.put(lines.rows() - 2, 0, 0d, 0d);
+        lines.put(lines.rows() - 2, 1, 0, 0);
+        lines.put(lines.rows() - 2, 2, image.width() - 1, 0);
+        lines.put(lines.rows() - 1, 0, 0d, 0d);
+        lines.put(lines.rows() - 1, 1, 0, image.height() - 1);
+        lines.put(lines.rows() - 1, 2, image.width() - 1, image.height() - 1);
 
         // Draw lines, create dial search mask
         Mat dialSearchMask = new Mat(linedImage.size(), CvType.CV_8UC1, new Scalar(255));
@@ -104,8 +109,8 @@ public class ElectricityMeterImageRecognizer extends MeterImageRecognizer implem
         List<LineWithCoords> linesWithCoords = new ArrayList<>();
 
         for (int i = 0; i < lines.rows(); i++) {
-            Point startPoint = new Point((int)lines.get(i, 1)[0], (int)lines.get(i, 1)[1]);
-            Point endPoint = new Point((int)lines.get(i, 2)[0], (int)lines.get(i, 2)[1]);
+            Point startPoint = new Point((int) lines.get(i, 1)[0], (int) lines.get(i, 1)[1]);
+            Point endPoint = new Point((int) lines.get(i, 2)[0], (int) lines.get(i, 2)[1]);
             Imgproc.circle(filteredLineImage, startPoint, 5, new Scalar(255, 0, 0), 10, Imgproc.LINE_AA);
             Imgproc.circle(filteredLineImage, endPoint, 5, new Scalar(255, 0, 0), 10, Imgproc.LINE_AA);
             Imgproc.line(filteredLineImage, startPoint, endPoint, new Scalar(255.0d, 0d, 0d, 255.0d), 1, Imgproc.LINE_AA);
@@ -124,9 +129,9 @@ public class ElectricityMeterImageRecognizer extends MeterImageRecognizer implem
         double skewness = 0.0d;
 
         for (int i = 1; i < linesWithCoords.size(); i++) {
-            Point[] regionPoints = new Point[] {
-                    linesWithCoords.get(i-1).getStartPoint(),
-                    linesWithCoords.get(i-1).getEndPoint(),
+            Point[] regionPoints = new Point[]{
+                    linesWithCoords.get(i - 1).getStartPoint(),
+                    linesWithCoords.get(i - 1).getEndPoint(),
                     linesWithCoords.get(i).getEndPoint(),
                     linesWithCoords.get(i).getStartPoint()
             };
@@ -150,7 +155,7 @@ public class ElectricityMeterImageRecognizer extends MeterImageRecognizer implem
             // Convert to HSV - Look for red dial contour
             Mat hsv = new Mat();
             Imgproc.cvtColor(masked, hsv, Imgproc.COLOR_RGB2HSV);
-            Core.inRange(hsv, new Scalar(150, 20, 100), new Scalar(180, 255, 255), hsv);
+            Core.inRange(hsv, HSV_RED_INTENSITY_LOWER, HSV_RED_INTENSITY_UPPER, hsv);
             Imgproc.rectangle(hsv, new Point(0, 0), new Point(hsv.width(), hsv.height()),
                     new Scalar(0, 0, 0), 2, Imgproc.LINE_AA);
 
@@ -211,7 +216,7 @@ public class ElectricityMeterImageRecognizer extends MeterImageRecognizer implem
         if (dialMinAreaRect.angle == 90.0d || dialMinAreaRect.angle == 0.0d) {
             Log.d(LOG_TAG, "Could not determine red dial angle. Using skewness value from region.");
             Log.d(LOG_TAG, String.format("Angle: %f ==> %f\n", dialMinAreaRect.angle, dialMinAreaRect.angle - skewness));
-            dialMinAreaRect.set(new double[] {
+            dialMinAreaRect.set(new double[]{
                     dialMinAreaRect.center.x, dialMinAreaRect.center.y,
                     dialMinAreaRect.size.width, dialMinAreaRect.size.height,
                     dialMinAreaRect.angle - skewness}
@@ -220,22 +225,20 @@ public class ElectricityMeterImageRecognizer extends MeterImageRecognizer implem
 
         // Search whole dials rect
         RotatedRect wholeDialsRect = new RotatedRect();
-        RotatedRect extendedDialRect = CvHelper.stretchRectangle(dialMinAreaRect, 13.0d);
+        RotatedRect extendedDialRect = CvHelper.stretchRectangle(dialMinAreaRect, config.getDialFrameWidthMultiplier());
 
         double darkIntensityRatio = findDials(image, dialMinAreaRect, extendedDialRect, wholeDialsRect);
         int extensionCount = 0;
 
-        while (darkIntensityRatio > Config.ImgProc.maxBlackIntensityRatio &&
-                extensionCount++ < 5) {
-            Log.d(LOG_TAG,
-                    String.format("Whole dials rectangle is likely too small. Dark intensity ratio: %.2f",
-                    darkIntensityRatio));
-            Log.d(LOG_TAG, String.format("Extending whole dial width by %df %%\n",
-                    (int) (Config.ImgProc.digitFrameExtensionMultiplier - 1.0d) * 100));
+        while (darkIntensityRatio > config.getMaxBlackIntensityRatio() && extensionCount++ < 5) {
+            Log.d(LOG_TAG, String.format("Whole dials rectangle is likely too small. Dark intensity ratio: %.2f", darkIntensityRatio));
+            Log.d(LOG_TAG, String.format("Extending whole dial width by %d %%\n",
+                    (int) ((config.getDigitFrameExtensionMultiplier() - 1.0d) * 100))
+            );
 
             Mat previousPoints = new Mat();
             Imgproc.boxPoints(wholeDialsRect, previousPoints);
-            extendedDialRect = CvHelper.stretchRectangle(extendedDialRect, Config.ImgProc.digitFrameExtensionMultiplier);
+            extendedDialRect = CvHelper.stretchRectangle(extendedDialRect, config.getDigitFrameExtensionMultiplier());
             darkIntensityRatio = findDials(image, dialMinAreaRect, extendedDialRect, wholeDialsRect, previousPoints);
         }
 
@@ -255,7 +258,7 @@ public class ElectricityMeterImageRecognizer extends MeterImageRecognizer implem
                 redDialPoints[3]
         };
 
-        Mat warped = CvHelper.warpBirdsEye(image, pointsToWarp, image.width(), Config.ImgProc.DIAL_IMAGE_HEIGHT);
+        Mat warped = CvHelper.warpBirdsEye(image, pointsToWarp, image.width(), DIAL_IMAGE_HEIGHT);
         Mat corrected = CvHelper.rotate(warped, -skewness);
 
         resultImages.put(Pair.create(image, "Resized"), ImageType.FRAME_DETECTION);

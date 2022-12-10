@@ -22,12 +22,13 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.content.res.AppCompatResources;
 import androidx.constraintlayout.helper.widget.Carousel;
 
-import com.riczz.meterreader.config.ConfigHelper;
+import com.riczz.meterreader.database.DBHandler;
+import com.riczz.meterreader.enums.MeterType;
 import com.riczz.meterreader.exception.BaseException;
 import com.riczz.meterreader.exception.FrameDetectionException;
 import com.riczz.meterreader.exception.NumberRecognizationException;
-import com.riczz.meterreader.imageprocessing.DropdownListener;
-import com.riczz.meterreader.imageprocessing.ElectricityMeterImageRecognizer;
+import com.riczz.meterreader.imageprocessing.listeners.DropdownListener;
+import com.riczz.meterreader.imageprocessing.ElectricMeterImageRecognizer;
 import com.riczz.meterreader.imageprocessing.MeterImageRecognizer;
 
 import net.cachapa.expandablelayout.ExpandableLayout;
@@ -47,7 +48,7 @@ public final class PreviewActivity extends AppCompatActivity {
     private Bitmap rawImage;
     private Button retryButton;
     private Carousel previewCarousel;
-    private ConfigHelper configHelper;
+    private DBHandler dbHandler;
     private Drawable progressCircle;
     private ProgressBar progressBar;
     private String errorText;
@@ -62,6 +63,7 @@ public final class PreviewActivity extends AppCompatActivity {
     private ExecutorService executorService;
     private Handler handler;
 
+    private MeterType meterType;
     private int currentTaskNumber = 1;
     private double dialsValue = 0.0f;
 
@@ -78,10 +80,16 @@ public final class PreviewActivity extends AppCompatActivity {
         viewFlipper = findViewById(R.id.previewViewFlipper);
         viewFlipper.setDisplayedChild(0);
 
-        configHelper = new ConfigHelper(this);
+        dbHandler = new DBHandler(this);
 
-        meterImageRecognizer = getIntent().getBooleanExtra("IS_GAS_METER", true) ?
-                new MeterImageRecognizer(this) : new ElectricityMeterImageRecognizer(this);
+        meterType = (getIntent().getBooleanExtra("IS_GAS_METER", true)) ?
+            MeterType.GAS : MeterType.ELECTRIC;
+
+        meterImageRecognizer = (meterType == MeterType.GAS) ?
+                new MeterImageRecognizer(this, dbHandler.getGasMeterConfig()) :
+                new ElectricMeterImageRecognizer(this, dbHandler.getElectricMeterConfig());
+
+        Log.e("ASD", "METER TYPE: " + meterType.name());
 
         progressCircle = progressBar.getIndeterminateDrawable();
         executorService = Executors.newSingleThreadExecutor();
@@ -101,6 +109,7 @@ public final class PreviewActivity extends AppCompatActivity {
                 dialsImage = meterImageRecognizer.detectDialFrame(rawImage);
             } catch (Exception e) {
                 Log.e(LOG_TAG, "There was an error during dial frame detection phase.");
+                Log.e(LOG_TAG, e.getMessage());
                 exception = e instanceof FrameDetectionException ?
                         (FrameDetectionException)e : new FrameDetectionException(-1);
                 errorText = getString(R.string.frame_detection_error);
@@ -114,6 +123,7 @@ public final class PreviewActivity extends AppCompatActivity {
                 dialsValue = meterImageRecognizer.getDialReadings(dialsImage);
             } catch (Exception e) {
                 Log.e(LOG_TAG, "There was an error during dial numbers detection phase.");
+                Log.e(LOG_TAG, e.getMessage());
                 exception = e instanceof  NumberRecognizationException ?
                         (NumberRecognizationException)e : new NumberRecognizationException(-1);
                 errorText = getString(R.string.dial_value_detection_error);
@@ -178,7 +188,11 @@ public final class PreviewActivity extends AppCompatActivity {
         if (success) {
             dialogBuilder
                     .setTitle(getString(R.string.results))
-                    .setMessage(String.format(getString(R.string.results_description), dialsValue))
+                    .setMessage(String.format(meterType == MeterType.GAS ?
+                            getString(R.string.results_description_gas) :
+                            getString(R.string.results_description_elec),
+                            dialsValue
+                    ))
                     .setPositiveButton(android.R.string.ok, (dialog, i) -> {
                         dialog.dismiss();
                         resultIntent.putExtra("DIALS_VALUE", dialsValue);

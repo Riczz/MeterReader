@@ -1,9 +1,9 @@
-package com.riczz.meterreader.imageprocessing;
+package com.riczz.meterreader.imageprocessing.utils;
 
 import org.opencv.core.Mat;
 import org.opencv.core.Point;
 
-public class LineWithCoords {
+public final class LineWithCoords {
     private double rho, theta;
     private Point startPoint, endPoint;
 

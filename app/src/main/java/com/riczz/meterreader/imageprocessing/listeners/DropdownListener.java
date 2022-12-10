@@ -1,4 +1,4 @@
-package com.riczz.meterreader.imageprocessing;
+package com.riczz.meterreader.imageprocessing.listeners;
 
 import android.view.View;
 import android.view.animation.Animation;

@@ -1,11 +1,10 @@
 package com.riczz.meterreader.imageprocessing;
 
 import android.graphics.Bitmap;
-import android.util.Log;
 
 import androidx.annotation.NonNull;
 
-import com.riczz.meterreader.config.Config;
+import com.riczz.meterreader.database.model.ElectricMeterConfig;
 
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.opencv.android.Utils;
@@ -35,7 +34,34 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-public final class CvHelper {
+public abstract class CvHelper {
+    ///////////////////////////////////////////////////////////////////////////////////////////
+    //                                    DEFAULT VALUES                                     //
+    ///////////////////////////////////////////////////////////////////////////////////////////
+
+    // THRESHOLD
+    public static final int DEFAULT_THRESHOLD_TYPE = Imgproc.THRESH_BINARY;
+    public static final int DEFAULT_THRESHOLD_VALUE = 30;
+    public static final int DEFAULT_THRESHOLD_MAXVAL = 255;
+
+    // MORPHOLOGY
+    public static final int DEFAULT_MORPHOLOGY_TYPE = Imgproc.MORPH_CLOSE;
+    public static final int DEFAULT_MORPHOLOGY_KERNEL_TYPE = Imgproc.MORPH_RECT;
+    public static final Size DEFAULT_MORPHOLOGY_KERNEL_SIZE = new Size(5, 5);
+
+    // BLUR
+    public static final Size DEFAULT_BLUR_KERNEL_SIZE = new Size(5, 5);
+    public static final int DEFAULT_BLUR_SIGMA_X = 5;
+
+    // RESIZE
+    public static final int DEFAULT_RESIZE_INTERPOLATION = Imgproc.INTER_AREA;
+
+    private CvHelper() {}
+
+    ///////////////////////////////////////////////////////////////////////////////////////////
+    //                            FUNCTIONS FOR  IMAGE PROCESSING                            //
+    ///////////////////////////////////////////////////////////////////////////////////////////
+
     public static void gammaCorrection(Mat src, Mat dst, float gamma) {
         Mat lut = new Mat(1, 256, CvType.CV_8U);
         for (int i = 0; i < 256; i++) lut.put(0, i, (int) (Math.pow(i / 255.0f, 1 / gamma) * 255));
@@ -56,10 +82,10 @@ public final class CvHelper {
         accumulator[0] = hist.get(0, 0)[0];
 
         for (int i = 1; i < hist.rows(); i++) {
-            accumulator[i] = accumulator[i-1] + hist.get(i, 0)[0];
+            accumulator[i] = accumulator[i - 1] + hist.get(i, 0)[0];
         }
 
-        double maximum = accumulator[accumulator.length-1];
+        double maximum = accumulator[accumulator.length - 1];
         clipHistPercent *= (maximum / 100.0d);
         clipHistPercent /= 2.0d;
 
@@ -124,14 +150,55 @@ public final class CvHelper {
 
     @NonNull
     public static RotatedRect stretchRectangle(RotatedRect rotatedRect, double sizeMultiplier) {
-        RotatedRect stretched = new RotatedRect(rotatedRect.center, rotatedRect.size, rotatedRect.angle);
+        RotatedRect stretched = rotatedRect.clone();
 
-        if (rotatedRect.size.width > rotatedRect.size.height) {
-            stretched.size.width *= sizeMultiplier;
+        if (Math.abs(rotatedRect.size.width - rotatedRect.size.height) <= 10.0d) {
+            Mat points = new Mat();
+            boolean stretchWidth = true;
+            double maxHorizontalWidth = 0.0d;
+
+            for (int i = 1; i <= 2; i++) {
+                if (i == 1) {
+                    stretched.size.width *= sizeMultiplier;
+                } else {
+                    stretched.size.width = rotatedRect.size.width;
+                    stretched.size.height *= sizeMultiplier;
+                }
+
+                Imgproc.boxPoints(stretched, points);
+                Point[] rectPoints = new Point[]{
+                        new Point(points.get(0, 0)),
+                        new Point(points.get(1, 0)),
+                        new Point(points.get(2, 0)),
+                        new Point(points.get(3, 0))
+                };
+                Double[] xCoords = Arrays.stream(rectPoints)
+                        .map(point -> point.x)
+                        .sorted(Comparator.comparingDouble(point -> point))
+                        .toArray(Double[]::new);
+
+                double horizontalWidth = Math.abs(xCoords[3] - xCoords[0]);
+
+                if (horizontalWidth > maxHorizontalWidth) {
+                    maxHorizontalWidth = horizontalWidth;
+                    stretchWidth = i == 1;
+                }
+            }
+
+            stretched.size = rotatedRect.size.clone();
+
+            if (stretchWidth) {
+                stretched.size.width *= sizeMultiplier;
+            } else {
+                stretched.size.height *= sizeMultiplier;
+            }
         } else {
-            stretched.size.height *= sizeMultiplier;
+            if (rotatedRect.size.width > rotatedRect.size.height) {
+                stretched.size.width *= sizeMultiplier;
+            } else {
+                stretched.size.height *= sizeMultiplier;
+            }
         }
-
         return stretched;
     }
 
@@ -179,10 +246,15 @@ public final class CvHelper {
             for (int j = 0; j < rect2.rows(); j++) {
                 Point p1 = new Point(rect1.get(i, 0));
                 Point p2 = new Point(rect2.get(j, 0));
-                if (euclideanDistance(p1, p2) <= 1.5) return true;
+                if (euclideanDistance(p1, p2) <= 1.5d) return true;
             }
         }
         return false;
+    }
+
+    public static Mat warpBirdsEye(Mat src, @NonNull RotatedRect rectArea, int width, int height) {
+        Point[] sortedPoints = CvHelper.orderRectPoints(rectArea);
+        return warpBirdsEye(src, sortedPoints, width, height);
     }
 
     public static Mat warpBirdsEye(Mat src, Point[] warpPoints, int width, int height) {
@@ -207,15 +279,9 @@ public final class CvHelper {
         return dst;
     }
 
-    public static Mat warpBirdsEye(Mat src, @NonNull RotatedRect rectArea, int width, int height) {
-        Point[] sortedPoints = CvHelper.orderRectPoints(rectArea);
-        return warpBirdsEye(src, sortedPoints, width, height);
-    }
-
     public static Point[] getLinePoints(double[] line) {
         return getLinePoints(line, null);
     }
-
 
     public static Point[] getLinePoints(double[] line, Mat cropImage) {
         double a = Math.cos(line[1]);
@@ -223,7 +289,7 @@ public final class CvHelper {
         double x0 = a * line[0];
         double y0 = b * line[0];
 
-        Point[] points = new Point[] {
+        Point[] points = new Point[]{
                 new Point(Math.round(x0 + 9999.0 * (-b)), Math.round(y0 + 9999.0 * a)),
                 new Point(Math.round(x0 - 9999.0 * (-b)), Math.round(y0 - 9999.0 * a))
         };
@@ -234,7 +300,7 @@ public final class CvHelper {
             Imgproc.line(lineMask, points[0], points[1], new Scalar(255.0d), 1, Imgproc.LINE_8);
             Imgproc.rectangle(lineMask,
                     new Point(1.0d, 1.0d),
-                    new Point(cropImage.width() - 1, cropImage.height() -1),
+                    new Point(cropImage.width() - 1, cropImage.height() - 1),
                     new Scalar(0.0d),
                     -1,
                     Imgproc.LINE_4
@@ -262,8 +328,8 @@ public final class CvHelper {
         DescriptiveStatistics statistics = new DescriptiveStatistics(values);
         double q25 = statistics.getPercentile(25);
         double q75 = statistics.getPercentile(75);
-        double IQR = fence * (q75-q25);
-        return new double[] {q25 - IQR, q75 + IQR};
+        double IQR = fence * (q75 - q25);
+        return new double[]{q25 - IQR, q75 + IQR};
     }
 
     public static double euclideanDistance(Point p1, Point p2) {
@@ -273,7 +339,7 @@ public final class CvHelper {
     }
 
     public static double getMiddlepointDistance(double[] line1, double[] line2) {
-        Point[][] linePoints = new Point[][] {
+        Point[][] linePoints = new Point[][]{
                 getLinePoints(line1),
                 getLinePoints(line2)
         };
@@ -287,8 +353,7 @@ public final class CvHelper {
         return euclideanDistance(middlePoints[0], middlePoints[1]);
     }
 
-//    public static Mat mergeLines(Mat lines, Mat cropImage) {
-    public static Mat mergeLines(List<double[]> lines, Mat cropImage) {
+    public static Mat mergeLines(List<double[]> lines, ElectricMeterConfig config, Mat cropImage) {
         Set<Integer> modifiedIndexes = new HashSet<>();
         List<double[]> resultLines = new ArrayList<>();
 
@@ -306,7 +371,10 @@ public final class CvHelper {
             for (int j = 0; j < lines.size(); j++) {
                 double[] line2 = lines.get(j);
 
-                if (i != j && getMiddlepointDistance(line1, line2) <= 15.0d || intersects(line1, line2, cropImage)) {
+                if (i != j &&
+                        getMiddlepointDistance(line1, line2) <= config.getMaxLineDistance() ||
+                        intersects(line1, line2, cropImage)
+                ) {
                     rhoValues.add(line2[0]);
                     thetaValues.add(line2[1]);
                     modifiedIndexes.add(j);
@@ -321,18 +389,11 @@ public final class CvHelper {
 
         // Create result matrix
         // Store the endpoints for each line alongside the rho and theta values for better handling
-        // TODO:
         Mat result = new Mat(resultLines.size() + 2, 3, CvType.CV_32FC2);
 
         for (int i = 0; i < result.rows() - 2; i++) {
             double[] lineData = resultLines.get(i);
             Point[] endpoints = getLinePoints(lineData, cropImage);
-
-            Log.e("ASD", "DATA " + i);
-            Log.e("ASD", Arrays.toString(lineData));
-            Log.e("ASD", endpoints[0].x + " " + endpoints[0].y);
-            Log.e("ASD", endpoints[1].x + " " + endpoints[1].y);
-            Log.e("ASD", "");
 
             result.put(i, 0, lineData);
             result.put(i, 1, endpoints[0].x, endpoints[0].y);
@@ -363,25 +424,6 @@ public final class CvHelper {
         }
     }
 
-    @NonNull
-    public static Mat rotate(@NonNull Mat image, double angle) {
-        Point center = new Point(image.width()/2.0d, image.height()/2.0d);
-        Mat M = Imgproc.getRotationMatrix2D(center, angle, 1.0d);
-        Mat rotated = image.clone();
-        Imgproc.warpAffine(rotated, rotated, M, image.size());
-        return rotated;
-    }
-
-    @NonNull
-    public static Mat resize(@NonNull Mat image, double width, double height) {
-        Mat resized = new Mat(image.size(), image.type());
-        Imgproc.resize(image, resized,
-                new Size(width, height), 0, 0,
-                Imgproc.INTER_AREA
-        );
-        return resized;
-    }
-
     public static boolean intersects(double[] line1, double[] line2, Mat cropImage) {
         Point[] line1Points = getLinePoints(line1);
         Point[] line2Points = getLinePoints(line2);
@@ -402,11 +444,34 @@ public final class CvHelper {
         points.convertTo(points, CvType.CV_32S);
 
         return image.submat(
-                (int) Math.max(Math.min(points.get(1,0)[1], points.get(2, 0)[1]), 0),
-                (int) Math.min(Math.max(points.get(0,0)[1], points.get(3, 0)[1]), image.height() - 1),
-                (int) Math.max(Math.min(points.get(0,0)[0], points.get(1, 0)[0]), 0),
-                (int) Math.min(Math.max(points.get(2,0)[0], points.get(3,0)[0]), image.width() - 1)
+                (int) Math.max(Math.min(points.get(1, 0)[1], points.get(2, 0)[1]), 0),
+                (int) Math.min(Math.max(points.get(0, 0)[1], points.get(3, 0)[1]), image.height() - 1),
+                (int) Math.max(Math.min(points.get(0, 0)[0], points.get(1, 0)[0]), 0),
+                (int) Math.min(Math.max(points.get(2, 0)[0], points.get(3, 0)[0]), image.width() - 1)
         );
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////
+    //                                   HELPER  FUNCTIONS                                   //
+    ///////////////////////////////////////////////////////////////////////////////////////////
+
+    @NonNull
+    public static Mat resize(@NonNull Mat image, double width, double height) {
+        Mat resized = new Mat(image.size(), image.type());
+        Imgproc.resize(image, resized,
+                new Size(width, height), 0, 0,
+                CvHelper.DEFAULT_RESIZE_INTERPOLATION
+        );
+        return resized;
+    }
+
+    @NonNull
+    public static Mat rotate(@NonNull Mat image, double angle) {
+        Point center = new Point(image.width() / 2.0d, image.height() / 2.0d);
+        Mat M = Imgproc.getRotationMatrix2D(center, angle, 1.0d);
+        Mat rotated = image.clone();
+        Imgproc.warpAffine(rotated, rotated, M, image.size());
+        return rotated;
     }
 
     @NonNull
@@ -418,7 +483,11 @@ public final class CvHelper {
 
     @NonNull
     public static Mat threshold(Mat image) {
-        return threshold(image, Config.ImgProc.defaultThresholdValue, 255, Config.ImgProc.DEFAULT_THRESHOLD_TYPE);
+        return threshold(image,
+                CvHelper.DEFAULT_THRESHOLD_VALUE,
+                CvHelper.DEFAULT_THRESHOLD_MAXVAL,
+                CvHelper.DEFAULT_THRESHOLD_TYPE
+        );
     }
 
     @NonNull
@@ -454,9 +523,10 @@ public final class CvHelper {
 
     public static void morphologyEx(Mat image, Mat dst) {
         morphologyEx(image, dst,
-                Config.ImgProc.morphologyKernelType,
-                new Size(Config.ImgProc.defaultKernelSize, Config.ImgProc.defaultKernelSize),
-                Config.ImgProc.MORPHOLOGY_DEFAULT_TYPE);
+                CvHelper.DEFAULT_MORPHOLOGY_KERNEL_TYPE,
+                CvHelper.DEFAULT_MORPHOLOGY_KERNEL_SIZE,
+                CvHelper.DEFAULT_MORPHOLOGY_TYPE
+        );
     }
 
     public static void morphologyEx(Mat image, Mat dst, Mat kernel, int morphType) {
@@ -470,8 +540,9 @@ public final class CvHelper {
 
     public static void gaussianBlur(Mat image, Mat dst) {
         gaussianBlur(image, dst,
-                new Size(Config.ImgProc.defaultKernelSize, Config.ImgProc.defaultKernelSize),
-                Config.ImgProc.blurSigmaX);
+                CvHelper.DEFAULT_BLUR_KERNEL_SIZE,
+                CvHelper.DEFAULT_BLUR_SIGMA_X
+        );
     }
 
     private static void gaussianBlur(Mat image, Mat dst, Size kernelSize, int sigmaX) {

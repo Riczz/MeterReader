@@ -1,6 +1,5 @@
-package com.riczz.meterreader.imageprocessing;
+package com.riczz.meterreader.imageprocessing.utils;
 
-import org.opencv.core.Mat;
 import org.opencv.core.MatOfPoint;
 import org.opencv.core.MatOfPoint2f;
 import org.opencv.core.RotatedRect;

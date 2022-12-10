@@ -3,7 +3,6 @@ package com.riczz.meterreader.imageprocessing;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.net.Uri;
-import android.os.Environment;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
@@ -17,7 +16,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.util.Locale;
 
-public final class ImageHandler {
+public final class ImageHandler implements IImageHandler {
 
     private static int savedImageCount = 0;
     private static final Bitmap.CompressFormat COMPRESS_FORMAT = Bitmap.CompressFormat.JPEG;
@@ -103,16 +102,5 @@ public final class ImageHandler {
     public ImageHandler setExternal(boolean external) {
         this.external = external;
         return this;
-    }
-
-    public static boolean isExternalStorageWritable() {
-        String state = Environment.getExternalStorageState();
-        return Environment.MEDIA_MOUNTED.equals(state);
-    }
-
-    public static boolean isExternalStorageReadable() {
-        String state = Environment.getExternalStorageState();
-        return Environment.MEDIA_MOUNTED.equals(state) ||
-                Environment.MEDIA_MOUNTED_READ_ONLY.equals(state);
     }
 }

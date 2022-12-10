@@ -15,7 +15,8 @@
     <string name="try_again">Próbálja újból.</string>
     <string name="results">Eredmény</string>
     <string name="options">Beállítások</string>
-    <string name="results_description">Sikeres mérőóra leolvasás!\nA dekektált érték: %1$.3f</string>
+    <string name="results_description_gas">Sikeres mérőóra leolvasás!\nA dekektált érték: %1$.3f</string>
+    <string name="results_description_elec">Sikeres mérőóra leolvasás!\nA dekektált érték: %1$.1f</string>
     <string name="intent_data_error">Hiba történt az adatok kiolvasása közben.</string>
     <drawable name="dial_frame">@drawable/number_dial</drawable>
 
