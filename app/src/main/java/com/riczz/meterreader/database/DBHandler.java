@@ -41,21 +41,6 @@ public final class DBHandler extends SQLiteOpenHelper {
                     cursor.getDouble(13)
             );
 
-            Log.e("ASD", "CONFIG GAS");
-            Log.e("ASD", "MAX SKEWNESS DEG: " + config.getMaxSkewnessDeg());
-            Log.e("ASD", "MAX CIRCUL: " + config.getMaxCircularity());
-            Log.e("ASD", "DIGIT FRAME EXTENSION M: " + config.getDigitFrameExtensionMultiplier());
-            Log.e("ASD", "DIGIT FRAME EXTENSION C: " + config.getDigitFrameMaxExtensionCount());
-            Log.e("ASD", "DIGIT BLACK B THICK: " + config.getDigitBlackBorderThickness());
-            Log.e("ASD", "DIGIT HW MAX: " + config.getDigitHeightWidthRatioMax());
-            Log.e("ASD", "DIGIT HW MIN: " + config.getDigitHeightWidthRatioMin());
-            Log.e("ASD", "DIGIT MAX H: " + config.getDigitMaxHeightRatio());
-            Log.e("ASD", "DIGIT MAX W: " + config.getDigitMaxWidthRatio());
-            Log.e("ASD", "DIGIT MIN BORDER DIST: " + config.getDigitMinBorderDist());
-            Log.e("ASD", "DIAL FRAME WIDTH M: " + config.getDialFrameWidthMultiplier());
-            Log.e("ASD", "GAMMA: " + config.getGammaMultiplier());
-            Log.e("ASD", "USE COLOR C: " + config.isUseColorCorrection());
-
             cursor.close();
             return config;
         }
@@ -107,26 +92,8 @@ public final class DBHandler extends SQLiteOpenHelper {
                     cursor.getDouble(14)
             );
 
-            Log.e("ASD", "CONFIG ELEC");
-            Log.e("ASD", "MAX LINE D: " + config.getMaxLineDistance());
-            Log.e("ASD", "MAX SKEWNESS DEG: " + config.getMaxSkewnessDeg());
-            Log.e("ASD", "MIN RECTANG: " + config.getMinRectangularity());
-            Log.e("ASD", "DIGIT FRAME EXTENSION M: " + config.getDigitFrameExtensionMultiplier());
-            Log.e("ASD", "DIGIT FRAME EXTENSION C: " + config.getDigitFrameMaxExtensionCount());
-            Log.e("ASD", "DIGIT BLACK B THICK: " + config.getDigitBlackBorderThickness());
-            Log.e("ASD", "DIGIT HW MAX: " + config.getDigitHeightWidthRatioMax());
-            Log.e("ASD", "DIGIT HW MIN: " + config.getDigitHeightWidthRatioMin());
-            Log.e("ASD", "DIGIT MAX H: " + config.getDigitMaxHeightRatio());
-            Log.e("ASD", "DIGIT MAX W: " + config.getDigitMaxWidthRatio());
-            Log.e("ASD", "DIGIT MIN BORDER DIST: " + config.getDigitMinBorderDist());
-            Log.e("ASD", "DIAL FRAME WIDTH M: " + config.getDialFrameWidthMultiplier());
-            Log.e("ASD", "GAMMA: " + config.getGammaMultiplier());
-            Log.e("ASD", "USE COLOR C: " + config.isUseColorCorrection());
-
             cursor.close();
             return config;
-        } else {
-            Log.e("ASD", "NOTHING");
         }
         return null;
     }
@@ -154,7 +121,6 @@ public final class DBHandler extends SQLiteOpenHelper {
     }
 
     public void onCreate(SQLiteDatabase db) {
-        Log.e("ASD", "ONCREATE");
         db.execSQL(DBContract.SQL_CREATE_GAS_CONFIG_TABLE);
         db.execSQL(DBContract.SQL_CREATE_ELECTRIC_CONFIG_TABLE);
         db.execSQL(DBContract.SQL_INSERT_DEFAULT_GAS_ROW);
