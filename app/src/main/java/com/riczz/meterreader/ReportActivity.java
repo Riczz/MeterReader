@@ -6,11 +6,11 @@ import android.content.ContentValues;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
-import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.util.Log;
+import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -20,23 +20,21 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.constraintlayout.widget.ConstraintSet;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.res.ResourcesCompat;
 
 import com.bumptech.glide.Glide;
+import com.riczz.meterreader.database.DBHandler;
+import com.riczz.meterreader.database.model.Config;
+import com.riczz.meterreader.enums.ImageType;
+import com.riczz.meterreader.enums.MeterType;
+import com.riczz.meterreader.view.ImageCategoryViewer;
 
 import java.util.Locale;
 
 public final class ReportActivity extends AppCompatActivity {
-    private Button takePhotoButton;
-    private Button galleryButton;
-    private Button sendReportButton;
-    private ImageView dialFrame;
-    private ImageView imagePreview;
-    private LinearLayout dialContainer;
-    private Uri previewImageUri;
-    private boolean isGasMeter;
-
     private static final byte NUMBER_OF_DIALS = 8;
     private static final byte NUMBER_OF_WHOLE_DIALS = 5;
 
@@ -47,19 +45,28 @@ public final class ReportActivity extends AppCompatActivity {
     private static final int REQUEST_PICK_IMAGE = 400;
     private static final String LOG_TAG = ReportActivity.class.getName();
 
+    //    private Button sendReportButton;
+    private Button takePhotoButton;
+    private Button galleryButton;
+    private ImageView dialFrame;
+    private LinearLayout dialContainer;
+    private DBHandler dbHandler;
+    private Uri previewImageUri;
+    private boolean isGasMeter;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_meter_report);
 
         isGasMeter = getIntent().getBooleanExtra("IS_GAS_METER", true);
+        dbHandler = new DBHandler(this);
 
         dialFrame = findViewById(R.id.dialFrame);
         dialContainer = findViewById(R.id.dials_container);
         takePhotoButton = findViewById(R.id.takePhotoButton);
         galleryButton = findViewById(R.id.galleryButton);
-        sendReportButton = findViewById(R.id.sendReportButton);
-        imagePreview = findViewById(R.id.photoPreview);
+//        sendReportButton = findViewById(R.id.sendReportButton);
 
         Glide.with(this)
                 .load(ResourcesCompat.getDrawable(getResources(), R.drawable.dial_frame, null))
@@ -109,9 +116,6 @@ public final class ReportActivity extends AppCompatActivity {
                 previewImageUri = data.getData();
             case REQUEST_TAKE_PHOTO:
                 try {
-                    Bitmap previewImage = MediaStore.Images.Media.getBitmap(getContentResolver(), previewImageUri);
-                    Log.d(LOG_TAG, "Bitmap image saved successfully. URI: " + previewImageUri);
-
                     Intent intent = new Intent(this, PreviewActivity.class);
                     intent.setData(previewImageUri);
                     intent.putExtra("IS_GAS_METER", isGasMeter);
@@ -123,12 +127,15 @@ public final class ReportActivity extends AppCompatActivity {
                 break;
             case ANALYZE_TAKEN_IMAGE:
                 assert  data != null;
+                addPreview();
                 if (data.hasExtra("DIALS_VALUE")) {
                     setDialValues(data.getFloatExtra("DIALS_VALUE", 0.0f));
-                    sendReportButton.setEnabled(true);
+//                    sendReportButton.setEnabled(true);
                 } else {
                     Toast.makeText(this,
-                            getString(R.string.intent_data_error), Toast.LENGTH_SHORT).show();
+                            getString(R.string.intent_data_error),
+                            Toast.LENGTH_SHORT
+                    ).show();
                 }
             default:
                 break;
@@ -148,6 +155,63 @@ public final class ReportActivity extends AppCompatActivity {
                 takePhotoButton.callOnClick();
             }
         }
+    }
+
+    private void addPreview() {
+        ConstraintLayout reportConstraintLayout = findViewById(R.id.reportConstraintLayout);
+
+        if (reportConstraintLayout.getChildCount() > 2) {
+            reportConstraintLayout.removeViewAt(2);
+            reportConstraintLayout.invalidate();
+        }
+
+        ImageCategoryViewer imageCategoryViewer = new ImageCategoryViewer(this,
+                isGasMeter ? MeterType.GAS : MeterType.ELECTRIC
+        );
+
+        Config config = isGasMeter ?
+                dbHandler.getGasMeterConfig() : dbHandler.getElectricMeterConfig();
+
+        if (config != null && config.isUseColorCorrection()) {
+            imageCategoryViewer.addImageCategory(ImageType.COLOR_CORRECTION);
+        }
+        if (isGasMeter) {
+            imageCategoryViewer.addImageCategory(ImageType.SKEWNESS_CORRECTION);
+        }
+        imageCategoryViewer.addImageCategory(ImageType.FRAME_DETECTION);
+        imageCategoryViewer.addImageCategory(ImageType.DIAL_SEARCH);
+        imageCategoryViewer.addImageCategory(ImageType.DIGIT_DETECTION);
+        imageCategoryViewer.refreshView();
+        imageCategoryViewer.setSelected(ImageType.DIGIT_DETECTION, -1);
+
+        ConstraintLayout.LayoutParams layoutParams = new ConstraintLayout.LayoutParams(
+                ConstraintLayout.LayoutParams.MATCH_PARENT,
+                getResources().getDimensionPixelSize(R.dimen.image_viewer_container_height_dp)
+        );
+        imageCategoryViewer.setLayoutParams(layoutParams);
+        imageCategoryViewer.setId(View.generateViewId());
+        reportConstraintLayout.addView(imageCategoryViewer);
+
+        ConstraintSet constraintSet = new ConstraintSet();
+        constraintSet.clone(reportConstraintLayout);
+        constraintSet.connect(
+                imageCategoryViewer.getId(), ConstraintSet.TOP,
+                R.id.dialRelativeLayout, ConstraintSet.BOTTOM
+        );
+        constraintSet.connect(
+                imageCategoryViewer.getId(), ConstraintSet.START,
+                reportConstraintLayout.getId(), ConstraintSet.START
+        );
+        constraintSet.connect(
+                imageCategoryViewer.getId(), ConstraintSet.END,
+                ConstraintSet.PARENT_ID, ConstraintSet.END
+        );
+        constraintSet.connect(
+                imageCategoryViewer.getId(), ConstraintSet.BOTTOM,
+                R.id.linearLayout, ConstraintSet.TOP
+        );
+        constraintSet.applyTo(reportConstraintLayout);
+        reportConstraintLayout.invalidate();
     }
 
     private boolean setDialValues(double number) {
@@ -190,6 +254,7 @@ public final class ReportActivity extends AppCompatActivity {
             if (i == NUMBER_OF_WHOLE_DIALS) continue;
 
             NumberPicker dial = (NumberPicker) dialContainer.getChildAt(i);
+            dial.setId(View.generateViewId());
             dial.setMinValue(0);
             dial.setMaxValue(9);
         }

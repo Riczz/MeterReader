@@ -8,7 +8,7 @@ import android.widget.ImageView;
 
 import net.cachapa.expandablelayout.ExpandableLayout;
 
-public final class DropdownListener implements View.OnClickListener {
+public final class DropdownToggleListener implements View.OnClickListener {
 
     private static final LinearInterpolator INTERPOLATOR = new LinearInterpolator();
 
@@ -37,7 +37,7 @@ public final class DropdownListener implements View.OnClickListener {
     private final ExpandableLayout dropdown;
     private final ImageView dropdownArrow;
 
-    public DropdownListener(ExpandableLayout dropdown, ImageView dropdownArrow) {
+    public DropdownToggleListener(ExpandableLayout dropdown, ImageView dropdownArrow) {
         this.dropdown = dropdown;
         this.dropdownArrow = dropdownArrow;
     }

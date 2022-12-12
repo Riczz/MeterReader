@@ -20,14 +20,13 @@ import android.widget.ViewFlipper;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.content.res.AppCompatResources;
-import androidx.constraintlayout.helper.widget.Carousel;
 
 import com.riczz.meterreader.database.DBHandler;
 import com.riczz.meterreader.enums.MeterType;
 import com.riczz.meterreader.exception.BaseException;
 import com.riczz.meterreader.exception.FrameDetectionException;
 import com.riczz.meterreader.exception.NumberRecognizationException;
-import com.riczz.meterreader.imageprocessing.listeners.DropdownListener;
+import com.riczz.meterreader.imageprocessing.listeners.DropdownToggleListener;
 import com.riczz.meterreader.imageprocessing.ElectricMeterImageRecognizer;
 import com.riczz.meterreader.imageprocessing.MeterImageRecognizer;
 
@@ -47,7 +46,6 @@ public final class PreviewActivity extends AppCompatActivity {
 
     private Bitmap rawImage;
     private Button retryButton;
-    private Carousel previewCarousel;
     private DBHandler dbHandler;
     private Drawable progressCircle;
     private ProgressBar progressBar;
@@ -75,7 +73,6 @@ public final class PreviewActivity extends AppCompatActivity {
 
         progressBar = findViewById(R.id.progressBar);
         progressText = findViewById(R.id.progressText);
-        previewCarousel = findViewById(R.id.previewCarousel);
         retryButton = findViewById(R.id.retryRecognitionButton);
         viewFlipper = findViewById(R.id.previewViewFlipper);
         viewFlipper.setDisplayedChild(0);
@@ -88,8 +85,6 @@ public final class PreviewActivity extends AppCompatActivity {
         meterImageRecognizer = (meterType == MeterType.GAS) ?
                 new MeterImageRecognizer(this, dbHandler.getGasMeterConfig()) :
                 new ElectricMeterImageRecognizer(this, dbHandler.getElectricMeterConfig());
-
-        Log.e("ASD", "METER TYPE: " + meterType.name());
 
         progressCircle = progressBar.getIndeterminateDrawable();
         executorService = Executors.newSingleThreadExecutor();
@@ -133,44 +128,6 @@ public final class PreviewActivity extends AppCompatActivity {
 
             updateProgress(getString(R.string.progress_finalization));
             meterImageRecognizer.saveResultImages();
-//            List<Pair<Mat, Uri>> resultImages = new ArrayList<>(meterImageRecognizer.getResultImages().values());
-//
-//            previewCarousel.setAdapter(new Carousel.Adapter() {
-//                @Override
-//                public int count() {
-//                    return 4;
-//                }
-//
-//                @Override
-//                public void populate(View view, int index) {
-//                    int previewImageId = getResources().getIdentifier("previewImageView" + index, "id", getPackageName());
-//                    AppCompatImageView previewImage = findViewById(previewImageId);
-//                    Uri resultImageUri = resultImages.get(index).second;
-//
-//                    runOnUiThread(() -> {
-//                        previewImage.setImageURI(resultImageUri);
-////                        Glide.with(getApplicationContext())
-////                                .load(resultImageUri)
-////                                .into(previewImage);
-//                    });
-//                }
-//
-//                @Override
-//                public void onNewItem(int index) {}
-//            });
-
-//            //TODO:
-//            for (int i = 0; i <= 4; i++) {
-//                int previewImageId = getResources().getIdentifier("previewImageView" + i, "id", getPackageName());
-//                ImageView previewImage = findViewById(previewImageId);
-//                Uri resultImageUri = resultImages.get(i).second;
-//
-//                runOnUiThread(() -> {
-//                    Glide.with(this)
-//                            .load(resultImageUri)
-//                            .into(previewImage);
-//                });
-//            }
 
             updateProgress("");
             runOnUiThread(this::showFinishedDialog);
@@ -233,10 +190,10 @@ public final class PreviewActivity extends AppCompatActivity {
 
             ImageView errorDropdownArrow = dialogView.findViewById(R.id.errorDetailsArrow);
             ExpandableLayout errorDescription = dialogView.findViewById(R.id.expandable_layout);
-            DropdownListener dropdownListener = new DropdownListener(errorDescription, errorDropdownArrow);
+            DropdownToggleListener dropdownToggleListener = new DropdownToggleListener(errorDescription, errorDropdownArrow);
 
             Button errorDetailsDropdownButton = dialogView.findViewById(R.id.errorDetailsButton);
-            errorDetailsDropdownButton.setOnClickListener(dropdownListener);
+            errorDetailsDropdownButton.setOnClickListener(dropdownToggleListener);
 
             TextView errorDetailsHeader = dialogView.findViewById(R.id.errorDetailsHeader);
             errorDetailsHeader.setText(getString(R.string.error_dropdown_header));

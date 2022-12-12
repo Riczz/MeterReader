@@ -14,7 +14,10 @@ import org.opencv.core.Mat;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 
 public final class ImageHandler implements IImageHandler {
 
@@ -62,14 +65,13 @@ public final class ImageHandler implements IImageHandler {
         return null;
     }
 
-//    public Bitmap loadImage(String fileName) {
-//        try (FileInputStream inputStream = new FileInputStream(createFile(fileName))) {
-//            return BitmapFactory.decodeStream(inputStream);
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//            return null;
-//        }
-//    }
+    public List<Uri> getImageCategoryImages(ImageType imageType) {
+        List<Uri> uris = new ArrayList<>();
+        File imageDir = new File(getExternalStorageDir(), imageType.getFolderName());
+        File[] files = imageDir.listFiles();
+        for (File file : Objects.requireNonNull(files)) uris.add(Uri.fromFile(file));
+        return uris;
+    }
 
     @NonNull
     private File createFile(String fileName) {

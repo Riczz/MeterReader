@@ -5,7 +5,6 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.util.Log;
 
 import com.riczz.meterreader.database.model.ElectricMeterConfig;
 import com.riczz.meterreader.database.model.GasMeterConfig;
@@ -116,7 +115,7 @@ public final class DBHandler extends SQLiteOpenHelper {
         values.put(DBContract.Entry.COL_DIGIT_BLACK_BORDER_THICKNESS, config.getDigitBlackBorderThickness());
         values.put(DBContract.Entry.COL_MIN_RECTANGULARITY, config.getMinRectangularity());
         values.put(DBContract.Entry.COL_MAX_LINE_DISTANCE, config.getMaxLineDistance());
-        db.update(DBContract.Entry.TABLE_NAME_GAS_CFG, values, null, null);
+        db.update(DBContract.Entry.TABLE_NAME_ELECTRIC_CFG, values, null, null);
         db.close();
     }
 

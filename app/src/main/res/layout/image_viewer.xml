@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/imageSelectorComboBox"
+        style="@style/Widget.MaterialComponents.TextInputLayout.FilledBox.ExposedDropdownMenu"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true"
+        android:layout_marginStart="10dp"
+        android:layout_marginEnd="10dp"
+        android:layout_marginBottom="25dp"
+        android:valueFrom="0.0"
+        android:valueTo="100.0">
+
+        <AutoCompleteTextView
+            android:id="@+id/imageSelectorTextView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:capitalize="words"
+            android:dropDownHeight="150dp"
+            android:ellipsize="end"
+            android:fadeScrollbars="false"
+            android:inputType="none"
+            android:labelFor="@id/imageSelectorComboBox"
+            android:marqueeRepeatLimit="marquee_forever"
+            android:maxLines="1"
+            android:scrollbarDefaultDelayBeforeFade="2000"
+            android:scrollbarSize="8dp"
+            android:scrollbars="vertical"
+            android:textAlignment="textStart"
+            android:textSize="21dp"
+            android:textStyle="bold"
+            android:verticalScrollbarPosition="right" />
+
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <ImageView
+        android:id="@+id/previousImageArrow"
+        app:srcCompat="@drawable/ic_dropdown_arrow"
+        app:tint="@color/green_400"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="100dp"
+        android:backgroundTint="#765B5B"
+        android:rotation="180"
+        android:scaleType="fitCenter"
+        android:scaleX="1.25"
+        android:scaleY="1.25" />
+
+    <ImageView
+        android:id="@+id/nextImageArrow"
+        app:srcCompat="@drawable/ic_dropdown_arrow"
+        app:tint="@color/green_400"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="100dp"
+        android:backgroundTint="#765B5B"
+        android:rotation="0"
+        android:scaleType="fitCenter"
+        android:scaleX="1.25"
+        android:scaleY="1.25" />
+
+</RelativeLayout>

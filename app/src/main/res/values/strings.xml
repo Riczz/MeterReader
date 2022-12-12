@@ -39,6 +39,16 @@
         Lorem ipsum dolor sit amet
     </string>
 
+    <!--  Result image categories  -->
+    <string name="category_frame_detection_gas">Vörös keret helye</string>
+    <string name="category_frame_detection_electric">Vörös számjegy helye</string>
+    <string name="category_dial_search">Számlapkeret keresése</string>
+    <string name="category_skewness_correction">Ferdeség korrekció</string>
+    <string name="category_color_correction">Színkorrekció</string>
+    <string name="category_digit_detection">Számjegy detektció</string>
+
     <!--  Misc -->
     <string name="error_details_dropdown_desc">Error details dropdown arrow</string>
+    <string name="take_photo">Fénykép készítése</string>
+    <string name="send_report">Mérőállás rögzítése</string>
 </resources>
