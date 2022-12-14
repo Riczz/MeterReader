@@ -16,5 +16,6 @@
             <enum name="GAS" value="0" />
             <enum name="ELECTRIC" value="1" />
         </attr>
+        <attr name="comboBoxHeight" format="integer" />
     </declare-styleable>
 </resources>

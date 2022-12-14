@@ -1,74 +1,130 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+    android:layout_height="match_parent">
 
     <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/imageSelectorComboBox"
+        android:id="@+id/imageCategoryComboBox"
         style="@style/Widget.MaterialComponents.TextInputLayout.FilledBox.ExposedDropdownMenu"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentStart="true"
         android:layout_alignParentTop="true"
         android:layout_alignParentEnd="true"
-        android:layout_marginStart="10dp"
-        android:layout_marginEnd="10dp"
-        android:layout_marginBottom="25dp"
         android:valueFrom="0.0"
-        android:valueTo="100.0">
+        android:valueTo="100.0"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
 
         <AutoCompleteTextView
-            android:id="@+id/imageSelectorTextView"
+            android:id="@+id/imageCategoryTextView"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
-            android:capitalize="words"
+            android:layout_height="match_parent"
             android:dropDownHeight="150dp"
             android:ellipsize="end"
             android:fadeScrollbars="false"
             android:inputType="none"
-            android:labelFor="@id/imageSelectorComboBox"
+            android:labelFor="@id/imageCategoryComboBox"
             android:marqueeRepeatLimit="marquee_forever"
             android:maxLines="1"
             android:scrollbarDefaultDelayBeforeFade="2000"
             android:scrollbarSize="8dp"
             android:scrollbars="vertical"
             android:textAlignment="textStart"
-            android:textSize="21dp"
+            android:textSize="14sp"
             android:textStyle="bold"
-            android:verticalScrollbarPosition="right" />
+            android:textAllCaps="true"
+            android:verticalScrollbarPosition="right"
+            tools:ignore="SpeakableTextPresentCheck" />
 
     </com.google.android.material.textfield.TextInputLayout>
 
     <ImageView
         android:id="@+id/previousImageArrow"
-        app:srcCompat="@drawable/ic_dropdown_arrow"
-        app:tint="@color/green_400"
         android:layout_width="50dp"
         android:layout_height="50dp"
+        android:layout_below="@+id/imageCategoryComboBox"
         android:layout_alignParentStart="true"
         android:layout_alignParentBottom="true"
-        android:layout_marginBottom="100dp"
         android:backgroundTint="#765B5B"
         android:rotation="180"
         android:scaleType="fitCenter"
         android:scaleX="1.25"
-        android:scaleY="1.25" />
+        android:scaleY="1.25"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/imageCategoryComboBox"
+        app:srcCompat="@drawable/ic_dropdown_arrow"
+        app:tint="@color/green_400" />
 
     <ImageView
         android:id="@+id/nextImageArrow"
-        app:srcCompat="@drawable/ic_dropdown_arrow"
-        app:tint="@color/green_400"
         android:layout_width="50dp"
         android:layout_height="50dp"
+        android:layout_below="@+id/imageCategoryComboBox"
         android:layout_alignParentEnd="true"
         android:layout_alignParentBottom="true"
-        android:layout_marginBottom="100dp"
         android:backgroundTint="#765B5B"
         android:rotation="0"
         android:scaleType="fitCenter"
         android:scaleX="1.25"
-        android:scaleY="1.25" />
+        android:scaleY="1.25"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/imageCategoryComboBox"
+        app:srcCompat="@drawable/ic_dropdown_arrow"
+        app:tint="@color/green_400" />
 
-</RelativeLayout>
+    <FrameLayout
+        android:id="@+id/imageViewerFrame"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/nextImageArrow"
+        app:layout_constraintStart_toEndOf="@id/previousImageArrow"
+        app:layout_constraintTop_toBottomOf="@id/imageCategoryComboBox">
+
+        <!--        <ViewFlipper-->
+        <!--            android:id="@+id/testViewFlipper"-->
+        <!--            android:layout_width="match_parent"-->
+        <!--            android:layout_height="match_parent"-->
+        <!--            android:autoStart="true"-->
+        <!--            android:flipInterval="1000" />-->
+
+        <!--            <TextView-->
+        <!--                android:id="@+id/textView"-->
+        <!--                android:layout_width="match_parent"-->
+        <!--                android:layout_height="match_parent"-->
+        <!--                android:layout_gravity="center"-->
+        <!--                android:background="#FF0000"-->
+        <!--                android:gravity="center"-->
+        <!--                android:text="TextView" />-->
+    </FrameLayout>
+
+
+    <!--        <com.github.chrisbanes.photoview.PhotoView-->
+    <!--            android:layout_width="match_parent"-->
+    <!--            android:layout_height="match_parent"-->
+    <!--            android:layout_marginStart="10dp"-->
+    <!--            android:layout_marginTop="10dp"-->
+    <!--            android:layout_marginEnd="10dp"-->
+    <!--            android:layout_marginBottom="10dp"-->
+    <!--            android:background="#BC8585"-->
+    <!--            android:src="@drawable/number_dial" />-->
+
+    <!--        <com.github.chrisbanes.photoview.PhotoView-->
+    <!--            android:id="@+id/photoView"-->
+    <!--            android:layout_width="match_parent"-->
+    <!--            android:layout_height="match_parent"-->
+    <!--            android:layout_marginStart="10dp"-->
+    <!--            android:layout_marginTop="10dp"-->
+    <!--            android:layout_marginEnd="10dp"-->
+    <!--            android:layout_marginBottom="10dp"-->
+    <!--            android:background="#B13D3D"-->
+    <!--            android:src="@drawable/number_dial" />-->
+    <!--    </ViewFlipper>-->
+
+</androidx.constraintlayout.widget.ConstraintLayout>

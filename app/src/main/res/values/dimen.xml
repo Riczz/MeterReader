@@ -1,9 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <dimen name="image_viewer_container_height_dp">335dp</dimen>
-    <dimen name="image_viewer_height_dp">250dp</dimen>
-    <dimen name="image_viewer_margin_start_dp">50dp</dimen>
-    <dimen name="image_viewer_margin_end_dp">50dp</dimen>
+    <dimen name="image_viewer_report_height_dp">250dp</dimen>
+    <dimen name="image_viewer_report_margin_start_dp">10dp</dimen>
+    <dimen name="image_viewer_report_margin_end_dp">10dp</dimen>
+
+    <!--  Image viewer component dimensions  -->
+    <dimen name="image_viewer_margin_start_dp">10dp</dimen>
+    <dimen name="image_viewer_margin_end_dp">10dp</dimen>
     <dimen name="image_viewer_margin_top_dp">10dp</dimen>
     <dimen name="image_viewer_margin_bottom_dp">10dp</dimen>
 </resources>

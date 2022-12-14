@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <NumberPicker xmlns:android="http://schemas.android.com/apk/res/android"
-    android:theme="@style/dialTheme"
     android:layout_width="38dp"
     android:layout_height="75dp"
     android:layout_centerVertical="true"
+    android:descendantFocusability="blocksDescendants"
     android:focusable="false"
-    android:showDividers="none" />
+    android:focusableInTouchMode="false"
+    android:showDividers="none"
+    android:theme="@style/dialTheme" />

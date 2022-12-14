@@ -6,10 +6,12 @@ public enum MeterType {
 
     private final int numberOfDigits;
     private final int fractionalDigits;
+    private final int wholeDigits;
 
     MeterType(int numberOfDigits, int fractionalDigits) {
         this.numberOfDigits = numberOfDigits;
         this.fractionalDigits = fractionalDigits;
+        this.wholeDigits = numberOfDigits - fractionalDigits;
     }
 
     public int getNumberOfDigits() {
@@ -18,5 +20,9 @@ public enum MeterType {
 
     public int getFractionalDigits() {
         return fractionalDigits;
+    }
+
+    public int getWholeDigits() {
+        return wholeDigits;
     }
 }

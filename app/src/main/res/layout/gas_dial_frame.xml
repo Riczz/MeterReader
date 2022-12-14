@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/gasDialFrame"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <ImageView
+        android:id="@+id/imageView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:contentDescription="@string/gas_dial_frame_desc"
+        android:scaleType="fitXY"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@drawable/dial_frame_gas" />
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guidelineBottom1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintGuide_percent="0.79" />
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guidelineTop1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintGuide_percent="0.16" />
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guidelineWholeDialStart1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent="0.03" />
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guidelineWholeDialEnd1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent="0.585" />
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guidelineFractionalDialStart1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent="0.6325" />
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guidelineFractionalDialEnd1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent="0.97" />
+
+    <NumberPicker
+        android:id="@+id/numberPicker6"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:descendantFocusability="blocksDescendants"
+        android:focusable="false"
+        android:focusableInTouchMode="false"
+        android:showDividers="none"
+        android:theme="@style/dialTheme"
+        app:chainUseRtl="false"
+        app:layout_constraintBottom_toTopOf="@+id/guidelineBottom1"
+        app:layout_constraintEnd_toStartOf="@id/numberPicker7"
+        app:layout_constraintHorizontal_chainStyle="spread"
+        app:layout_constraintStart_toEndOf="@+id/guidelineFractionalDialStart1"
+        app:layout_constraintTop_toTopOf="@+id/guidelineTop1"
+        app:layout_constraintWidth_percent="0.11" />
+
+    <NumberPicker
+        android:id="@+id/numberPicker7"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:descendantFocusability="blocksDescendants"
+        android:focusable="false"
+        android:focusableInTouchMode="false"
+        android:showDividers="none"
+        android:theme="@style/dialTheme"
+        app:layout_constraintBottom_toTopOf="@+id/guidelineBottom1"
+        app:layout_constraintEnd_toStartOf="@+id/numberPicker8"
+        app:layout_constraintTop_toTopOf="@+id/guidelineTop1"
+        app:layout_constraintWidth_percent="0.11" />
+
+    <NumberPicker
+        android:id="@+id/numberPicker8"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:descendantFocusability="blocksDescendants"
+        android:focusable="false"
+        android:focusableInTouchMode="false"
+        android:showDividers="none"
+        android:theme="@style/dialTheme"
+        app:layout_constraintBottom_toTopOf="@+id/guidelineBottom1"
+        app:layout_constraintEnd_toStartOf="@+id/guidelineFractionalDialEnd1"
+        app:layout_constraintTop_toTopOf="@+id/guidelineTop1"
+        app:layout_constraintWidth_percent="0.11" />
+
+    <NumberPicker
+        android:id="@+id/numberPicker9"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:descendantFocusability="blocksDescendants"
+        android:focusable="false"
+        android:focusableInTouchMode="false"
+        android:showDividers="none"
+        android:theme="@style/dialTheme"
+        app:chainUseRtl="false"
+        app:layout_constraintBottom_toBottomOf="@id/guidelineBottom1"
+        app:layout_constraintEnd_toStartOf="@id/numberPicker2"
+        app:layout_constraintHorizontal_chainStyle="spread"
+        app:layout_constraintStart_toEndOf="@id/guidelineWholeDialStart1"
+        app:layout_constraintTop_toTopOf="@id/guidelineTop1"
+        app:layout_constraintWidth_percent="0.11" />
+
+    <NumberPicker
+        android:id="@+id/numberPicker2"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:descendantFocusability="blocksDescendants"
+        android:focusable="false"
+        android:focusableInTouchMode="false"
+        android:showDividers="none"
+        android:theme="@style/dialTheme"
+        app:layout_constraintBottom_toBottomOf="@id/guidelineBottom1"
+        app:layout_constraintEnd_toStartOf="@id/numberPicker3"
+        app:layout_constraintTop_toTopOf="@id/guidelineTop1"
+        app:layout_constraintWidth_percent="0.11" />
+
+    <NumberPicker
+        android:id="@+id/numberPicker3"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:descendantFocusability="blocksDescendants"
+        android:focusable="false"
+        android:focusableInTouchMode="false"
+        android:showDividers="none"
+        android:theme="@style/dialTheme"
+        app:layout_constraintBottom_toBottomOf="@id/guidelineBottom1"
+        app:layout_constraintEnd_toStartOf="@id/numberPicker4"
+        app:layout_constraintTop_toTopOf="@id/guidelineTop1"
+        app:layout_constraintWidth_percent="0.11" />
+
+    <NumberPicker
+        android:id="@+id/numberPicker4"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:descendantFocusability="blocksDescendants"
+        android:focusable="false"
+        android:focusableInTouchMode="false"
+        android:showDividers="none"
+        android:theme="@style/dialTheme"
+        app:layout_constraintBottom_toBottomOf="@id/guidelineBottom1"
+        app:layout_constraintEnd_toStartOf="@id/numberPicker5"
+        app:layout_constraintTop_toTopOf="@id/guidelineTop1"
+        app:layout_constraintWidth_percent="0.11" />
+
+    <NumberPicker
+        android:id="@+id/numberPicker5"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:descendantFocusability="blocksDescendants"
+        android:focusable="false"
+        android:focusableInTouchMode="false"
+        android:showDividers="none"
+        android:theme="@style/dialTheme"
+        app:layout_constraintBottom_toBottomOf="@id/guidelineBottom1"
+        app:layout_constraintEnd_toStartOf="@id/guidelineWholeDialEnd1"
+        app:layout_constraintTop_toTopOf="@id/guidelineTop1"
+        app:layout_constraintWidth_percent="0.11" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

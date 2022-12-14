@@ -18,7 +18,15 @@
     <string name="results_description_gas">Sikeres mérőóra leolvasás!\nA dekektált érték: %1$.3f</string>
     <string name="results_description_elec">Sikeres mérőóra leolvasás!\nA dekektált érték: %1$.1f</string>
     <string name="intent_data_error">Hiba történt az adatok kiolvasása közben.</string>
-    <drawable name="dial_frame">@drawable/number_dial</drawable>
+    <string name="take_photo">Fénykép készítése</string>
+    <string name="send_report">Mérőállás rögzítése</string>
+    <string name="retry">Próbálkozás újból</string>
+    <string name="result_images">Eredményképek</string>
+    <string name="reset_defaults">Alapértelmezett beállítások</string>
+
+    <!-- Drawables -->
+    <drawable name="dial_frame_gas">@drawable/number_dial</drawable>
+    <drawable name="dial_frame_electric">@drawable/number_dial_electric</drawable>
 
     <!--  Error messages  -->
     <string name="error_code_101">Nem sikerült meghatározni az utolsó három számjegyet körülvevő vörös keret helyét.</string>
@@ -48,7 +56,7 @@
     <string name="category_digit_detection">Számjegy detektció</string>
 
     <!--  Misc -->
-    <string name="error_details_dropdown_desc">Error details dropdown arrow</string>
-    <string name="take_photo">Fénykép készítése</string>
-    <string name="send_report">Mérőállás rögzítése</string>
+    <string name="electric_dial_frame_desc">Villanyóra kép keret</string>
+    <string name="gas_dial_frame_desc">Gázóra kép keret</string>
+    <string name="error_details_dropdown_desc">Hiba részletek lenyíló menü</string>
 </resources>

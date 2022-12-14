@@ -5,53 +5,57 @@ import android.app.Activity;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.NumberPicker;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.constraintlayout.widget.ConstraintSet;
 import androidx.core.app.ActivityCompat;
-import androidx.core.content.res.ResourcesCompat;
 
-import com.bumptech.glide.Glide;
 import com.riczz.meterreader.database.DBHandler;
 import com.riczz.meterreader.database.model.Config;
 import com.riczz.meterreader.enums.ImageType;
 import com.riczz.meterreader.enums.MeterType;
 import com.riczz.meterreader.view.ImageCategoryViewer;
 
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 
 public final class ReportActivity extends AppCompatActivity {
-    private static final byte NUMBER_OF_DIALS = 8;
-    private static final byte NUMBER_OF_WHOLE_DIALS = 5;
-
+    private static final String LOG_TAG = ReportActivity.class.getName();
     private static final int REQUEST_WRITE_STORAGE_PERMISSION = 501;
     private static final int REQUEST_CAMERA_PERMISSION = 500;
     private static final int ANALYZE_TAKEN_IMAGE = 402;
     private static final int REQUEST_TAKE_PHOTO = 401;
     private static final int REQUEST_PICK_IMAGE = 400;
-    private static final String LOG_TAG = ReportActivity.class.getName();
 
     //    private Button sendReportButton;
     private Button takePhotoButton;
     private Button galleryButton;
-    private ImageView dialFrame;
-    private LinearLayout dialContainer;
+    private ConstraintLayout dialContainer;
+    private ConstraintLayout reportConstraintLayout;
+    private ImageCategoryViewer previewImageViewer;
+    private final List<NumberPicker> dials = new ArrayList<>();
+
     private DBHandler dbHandler;
     private Uri previewImageUri;
+
+    private MeterType meterType;
     private boolean isGasMeter;
 
     @Override
@@ -59,19 +63,18 @@ public final class ReportActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_meter_report);
 
-        isGasMeter = getIntent().getBooleanExtra("IS_GAS_METER", true);
         dbHandler = new DBHandler(this);
+        isGasMeter = getIntent().getBooleanExtra("IS_GAS_METER", true);
+        meterType = isGasMeter ? MeterType.GAS : MeterType.ELECTRIC;
 
-        dialFrame = findViewById(R.id.dialFrame);
-        dialContainer = findViewById(R.id.dials_container);
+        ActionBar actionBar = Objects.requireNonNull(getSupportActionBar());
+        actionBar.setTitle(isGasMeter ? R.string.gas_meter_report_title : R.string.electric_meter_report_title);
+        actionBar.setDisplayHomeAsUpEnabled(true);
+
         takePhotoButton = findViewById(R.id.takePhotoButton);
         galleryButton = findViewById(R.id.galleryButton);
+        reportConstraintLayout = findViewById(R.id.reportConstraintLayout);
 //        sendReportButton = findViewById(R.id.sendReportButton);
-
-        Glide.with(this)
-                .load(ResourcesCompat.getDrawable(getResources(), R.drawable.dial_frame, null))
-                .into(dialFrame);
-
         setupDials();
 
         galleryButton.setOnClickListener(button -> {
@@ -127,11 +130,16 @@ public final class ReportActivity extends AppCompatActivity {
                 break;
             case ANALYZE_TAKEN_IMAGE:
                 assert  data != null;
-                addPreview();
                 if (data.hasExtra("DIALS_VALUE")) {
-                    setDialValues(data.getFloatExtra("DIALS_VALUE", 0.0f));
-//                    sendReportButton.setEnabled(true);
+                    setDialValues(data.getDoubleExtra("DIALS_VALUE", 0.0d));
+
+                    if (null != previewImageViewer) {
+                        removePreview();
+                    } else {
+                        addPreview();
+                    }
                 } else {
+                    if (null != previewImageViewer) removePreview();
                     Toast.makeText(this,
                             getString(R.string.intent_data_error),
                             Toast.LENGTH_SHORT
@@ -158,120 +166,103 @@ public final class ReportActivity extends AppCompatActivity {
     }
 
     private void addPreview() {
-        ConstraintLayout reportConstraintLayout = findViewById(R.id.reportConstraintLayout);
-
-        if (reportConstraintLayout.getChildCount() > 2) {
-            reportConstraintLayout.removeViewAt(2);
-            reportConstraintLayout.invalidate();
-        }
-
-        ImageCategoryViewer imageCategoryViewer = new ImageCategoryViewer(this,
-                isGasMeter ? MeterType.GAS : MeterType.ELECTRIC
-        );
+        previewImageViewer = new ImageCategoryViewer(this, meterType);
 
         Config config = isGasMeter ?
                 dbHandler.getGasMeterConfig() : dbHandler.getElectricMeterConfig();
 
         if (config != null && config.isUseColorCorrection()) {
-            imageCategoryViewer.addImageCategory(ImageType.COLOR_CORRECTION);
+            previewImageViewer.addImageCategory(ImageType.COLOR_CORRECTION);
         }
         if (isGasMeter) {
-            imageCategoryViewer.addImageCategory(ImageType.SKEWNESS_CORRECTION);
+            previewImageViewer.addImageCategory(ImageType.SKEWNESS_CORRECTION);
         }
-        imageCategoryViewer.addImageCategory(ImageType.FRAME_DETECTION);
-        imageCategoryViewer.addImageCategory(ImageType.DIAL_SEARCH);
-        imageCategoryViewer.addImageCategory(ImageType.DIGIT_DETECTION);
-        imageCategoryViewer.refreshView();
-        imageCategoryViewer.setSelected(ImageType.DIGIT_DETECTION, -1);
+        previewImageViewer.addImageCategory(ImageType.FRAME_DETECTION);
+        previewImageViewer.addImageCategory(ImageType.DIAL_SEARCH);
+        previewImageViewer.addImageCategory(ImageType.DIGIT_DETECTION);
+        previewImageViewer.refreshView();
+        previewImageViewer.setSelected(ImageType.DIGIT_DETECTION, -1);
+        reportConstraintLayout.addView(previewImageViewer);
 
         ConstraintLayout.LayoutParams layoutParams = new ConstraintLayout.LayoutParams(
                 ConstraintLayout.LayoutParams.MATCH_PARENT,
-                getResources().getDimensionPixelSize(R.dimen.image_viewer_container_height_dp)
+                getResources().getDimensionPixelSize(R.dimen.image_viewer_report_height_dp)
         );
-        imageCategoryViewer.setLayoutParams(layoutParams);
-        imageCategoryViewer.setId(View.generateViewId());
-        reportConstraintLayout.addView(imageCategoryViewer);
+        layoutParams.setMargins(
+                getResources().getDimensionPixelSize(R.dimen.image_viewer_report_margin_start_dp), 0,
+                getResources().getDimensionPixelSize(R.dimen.image_viewer_report_margin_end_dp), 0
+        );
+        previewImageViewer.setLayoutParams(layoutParams);
 
         ConstraintSet constraintSet = new ConstraintSet();
         constraintSet.clone(reportConstraintLayout);
         constraintSet.connect(
-                imageCategoryViewer.getId(), ConstraintSet.TOP,
+                previewImageViewer.getId(), ConstraintSet.TOP,
                 R.id.dialRelativeLayout, ConstraintSet.BOTTOM
         );
         constraintSet.connect(
-                imageCategoryViewer.getId(), ConstraintSet.START,
+                previewImageViewer.getId(), ConstraintSet.START,
                 reportConstraintLayout.getId(), ConstraintSet.START
         );
         constraintSet.connect(
-                imageCategoryViewer.getId(), ConstraintSet.END,
+                previewImageViewer.getId(), ConstraintSet.END,
                 ConstraintSet.PARENT_ID, ConstraintSet.END
         );
         constraintSet.connect(
-                imageCategoryViewer.getId(), ConstraintSet.BOTTOM,
+                previewImageViewer.getId(), ConstraintSet.BOTTOM,
                 R.id.linearLayout, ConstraintSet.TOP
         );
         constraintSet.applyTo(reportConstraintLayout);
         reportConstraintLayout.invalidate();
     }
 
+    private void removePreview() {
+        reportConstraintLayout.removeView(previewImageViewer);
+        reportConstraintLayout.invalidate();
+        previewImageViewer = null;
+    }
+
     private boolean setDialValues(double number) {
-        if (number < 0.0 || number >= Math.pow(10d, (double) NUMBER_OF_WHOLE_DIALS)) {
+        int numberOfDigits = meterType.getNumberOfDigits();
+        int numberOfWholeDigits = meterType.getWholeDigits();
+        int numberOfFractionalDigits = meterType.getFractionalDigits();
+
+        if (number < 0.0 || number >= Math.pow(10d, numberOfWholeDigits)) {
             Log.e(LOG_TAG, "Dial number out of bounds!");
             return false;
         }
 
-        String[] dialStrings = String.format(Locale.getDefault(), "%." +
-                (NUMBER_OF_DIALS - NUMBER_OF_WHOLE_DIALS) + "f", number).split(",");
+        String dialString = String
+                .format(Locale.getDefault(), "%." + numberOfFractionalDigits + "f", number);
+        dialString = StringUtils.leftPad(dialString, numberOfDigits+1, '0');
 
-        byte wholeDigits = (byte) dialStrings[0].length();
-        byte fractionalDigits = (byte) dialStrings[1].length();
-
-//        for (int i = 0; i < NUMBER_OF_WHOLE_DIALS; i++) {
-//            NumberPicker dial = (NumberPicker) dialContainer.getChildAt(i);
-//
-//            if (i >= NUMBER_OF_WHOLE_DIALS - wholeDigits) {
-//                dial.setValue(Character.getNumericValue(dialStrings[0].charAt()));
-//            } else {
-//                dial.setValue(0);
-//            }
-//        }
-
-        for (char digit : dialStrings[0].toCharArray()) {
-            NumberPicker dial = (NumberPicker) dialContainer.getChildAt(NUMBER_OF_WHOLE_DIALS - (wholeDigits--));
-            dial.setValue(Character.getNumericValue(digit));
-        }
-
-        for (char digit : dialStrings[1].toCharArray()) {
-            NumberPicker dial = (NumberPicker) dialContainer.getChildAt(NUMBER_OF_DIALS - (fractionalDigits--) + 1);
-            dial.setValue(Character.getNumericValue(digit));
+        for (int i = 0; i < dials.size(); i++) {
+            dials.get(i).setValue(Character.getNumericValue(dialString.charAt(i)));
         }
 
         return true;
     }
 
     private void setupDials() {
+        View dialFrameView = getLayoutInflater()
+                .inflate(isGasMeter ? R.layout.gas_dial_frame : R.layout.electric_dial_frame,
+                        findViewById(R.id.dialRelativeLayout),
+                        true
+                );
+
+        dialContainer = dialFrameView.findViewById(isGasMeter ? R.id.gasDialFrame : R.id.electricDialFrame);
+
         for (int i = 0; i < dialContainer.getChildCount(); i++) {
-            if (i == NUMBER_OF_WHOLE_DIALS) continue;
+            View child = dialContainer.getChildAt(i);
 
-            NumberPicker dial = (NumberPicker) dialContainer.getChildAt(i);
-            dial.setId(View.generateViewId());
-            dial.setMinValue(0);
-            dial.setMaxValue(9);
+            if (child instanceof NumberPicker) {
+                child.setFocusable(false);
+                child.setClickable(false);
+                ((NumberPicker)child).setMinValue(0);
+                ((NumberPicker)child).setMaxValue(9);
+                ((NumberPicker) child).setDescendantFocusability(ViewGroup.FOCUS_BLOCK_DESCENDANTS);
+                dials.add((NumberPicker) child);
+            }
         }
-    }
-
-    private String getRealPathFromURI(Uri contentUri) {
-        String res = null;
-        String[] proj = {MediaStore.Images.Media.DATA};
-        Cursor cursor = getContentResolver().query(contentUri, proj, null, null, null);
-
-        if (cursor.moveToFirst()) {
-
-            int column_index = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
-            res = cursor.getString(column_index);
-        }
-
-        cursor.close();
-        return res;
     }
 }

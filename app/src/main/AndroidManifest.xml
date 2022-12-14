@@ -24,12 +24,14 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.MeterReader">
+        android:theme="@style/Theme.MeterReader.NoActionBar">
         <activity
             android:name=".PreviewActivity"
             android:exported="false" />
         <activity
             android:name=".ReportActivity"
+            android:theme="@style/Theme.MeterReader"
+            android:screenOrientation="portrait"
             android:exported="false" />
         <activity
             android:name=".MainActivity"

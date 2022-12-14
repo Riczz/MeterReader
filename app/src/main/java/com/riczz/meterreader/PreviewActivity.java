@@ -162,7 +162,7 @@ public final class PreviewActivity extends AppCompatActivity {
                         setResult(RESULT_OK, resultIntent);
                         viewFlipper.setDisplayedChild(1);
                     }).setOnCancelListener(dialogInterface -> {
-                        setResult(RESULT_CANCELED);
+                        setResult(RESULT_CANCELED, resultIntent);
                         finish();
                     });
         } else {
@@ -174,17 +174,15 @@ public final class PreviewActivity extends AppCompatActivity {
                     .setView(dialogView)
                     .setPositiveButton(android.R.string.ok, (dialog, i) -> {
                         dialog.dismiss();
-                        resultIntent.putExtra("DIALS_VALUE", dialsValue);
-                        setResult(RESULT_OK, resultIntent);
+                        setResult(RESULT_CANCELED, resultIntent);
                         finish();
                     })
                     .setNegativeButton(getString(R.string.options), (dialog, i) -> {
                         dialog.dismiss();
-                        resultIntent.putExtra("DIALS_VALUE", dialsValue);
-                        setResult(RESULT_OK, resultIntent);
+                        setResult(RESULT_CANCELED, resultIntent);
                         viewFlipper.setDisplayedChild(1);
                     }).setOnCancelListener(dialogInterface -> {
-                        setResult(RESULT_CANCELED);
+                        setResult(RESULT_CANCELED, resultIntent);
                         finish();
                     });
 
