@@ -33,11 +33,6 @@ public final class SettingSliderComponent extends SettingComponent {
         infoButton.setOnClickListener(button -> showInfoDialog());
 
         sliderValueDescButton.setOnClickListener(button -> setValue(configSlider.getValue() - configSlider.getStepSize(), true));
-//            Log.e("ASD", "EVENT " + event.getAction());
-//            if (event.getAction() == MotionEvent.ACTION_DOWN) return button.performClick();
-//            return false;
-//        });
-
         sliderValueAscButton.setOnClickListener(button -> setValue(configSlider.getValue() + configSlider.getStepSize(), true));
 
         configSlider.addOnSliderTouchListener(new Slider.OnSliderTouchListener() {
@@ -104,7 +99,6 @@ public final class SettingSliderComponent extends SettingComponent {
     }
 
     public void setValue(double value, boolean updateDB) {
-        Log.e("ASD", "SET VALUE: " + value + " " + " UPDATE: " + updateDB);
         if (value < configSlider.getValueFrom()) {
             configSlider.setValue(configSlider.getValueFrom());
         } else configSlider.setValue((float) Math.min(value, configSlider.getValueTo()));

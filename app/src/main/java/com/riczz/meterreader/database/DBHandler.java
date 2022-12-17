@@ -97,7 +97,6 @@ public final class DBHandler extends SQLiteOpenHelper {
         if (cursor.getColumnCount() == 1) {
             try {
                 propertyValue = cursor.getInt(0) != 0;
-                Log.e("ASD", "PROPERTY VALUE GET: " + cursor.getInt(0));
             } catch (Exception e) {
                 Log.e(LOG_TAG, "Error while getting boolean value from column " + column + ".");
             }
@@ -121,7 +120,6 @@ public final class DBHandler extends SQLiteOpenHelper {
         if (cursor.getColumnCount() == 1) {
             try {
                 propertyValue = cursor.getDouble(0);
-//                Log.e("ASD", "PROPERTY VALUE GET: " + propertyValue);
             } catch (Exception e) {
                 Log.e(LOG_TAG, "Error while getting double value from column " + column + ".");
             }
@@ -139,12 +137,10 @@ public final class DBHandler extends SQLiteOpenHelper {
     public void resetDefaults(Set<MeterType> categories) {
         SQLiteDatabase db = getWritableDatabase();
         if (categories.contains(MeterType.GAS)) {
-            Log.e("ASD", "CONTAINS GAS!!!");
             db.execSQL(DBContract.SQL_CLEAR_GAS_TABLE);
             db.execSQL(DBContract.SQL_INSERT_DEFAULT_GAS_ROW);
         }
         if (categories.contains(MeterType.ELECTRIC)) {
-            Log.e("ASD", "CONTAINS ELECTRIC!!!");
             db.execSQL(DBContract.SQL_CLEAR_ELECTRIC_TABLE);
             db.execSQL(DBContract.SQL_INSERT_DEFAULT_ELECTRIC_ROW);
         }

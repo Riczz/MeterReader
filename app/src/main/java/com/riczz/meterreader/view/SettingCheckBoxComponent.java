@@ -65,7 +65,6 @@ public class SettingCheckBoxComponent extends SettingComponent {
     }
 
     public void setValue(boolean value) {
-        Log.e("ASD", "SET VALUE: " + value);
         checkBox.setChecked(value);
         dbHandler.updateConfig(meterType, dbColumnName, value);
     }
