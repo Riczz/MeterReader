@@ -53,11 +53,11 @@ public class MeterImageRecognizer implements IMeterImageRecognizer {
     private static final Scalar HSV_BLACK_INTENSITY_LOWER = new Scalar(0, 0, 0);
     private static final Scalar HSV_BLACK_INTENSITY_UPPER = new Scalar(180, 255, 120);
 
+    protected Config config;
     protected Interpreter tflite;
     protected final ImageHandler imageHandler;
     protected final Map<Pair<Mat, String>, ImageType> resultImages;
     protected final MeterType meterType;
-    protected final Config config;
 
     public MeterImageRecognizer(Context context, Config config) {
         this(context, MeterType.GAS, config);
@@ -705,5 +705,9 @@ public class MeterImageRecognizer implements IMeterImageRecognizer {
 
     protected MappedByteBuffer loadModelFile(Activity activity) throws IOException {
         return FileUtil.loadMappedFile(activity, TFLITE_MODEL_ASSET_PATH);
+    }
+
+    public void setConfig(Config config) {
+        this.config = config;
     }
 }

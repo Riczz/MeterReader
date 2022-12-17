@@ -11,11 +11,14 @@ import androidx.appcompat.widget.AppCompatImageView;
 
 import com.google.android.material.card.MaterialCardView;
 import com.riczz.meterreader.database.DBHandler;
+import com.riczz.meterreader.enums.MeterType;
 
 public abstract class SettingComponent extends MaterialCardView {
 
     protected final Context context;
-    protected final DBHandler DBHandler;
+    protected DBHandler dbHandler;
+    protected MeterType meterType;
+    protected String dbColumnName;
     protected AttributeSet attributeSet;
     protected AppCompatImageView infoButton;
     protected ImageView infoImage;
@@ -27,7 +30,7 @@ public abstract class SettingComponent extends MaterialCardView {
         super(context, attrs);
         this.context = context;
         this.attributeSet = attrs;
-        this.DBHandler = new DBHandler(context);
+        this.dbHandler = new DBHandler(context);
     }
 
     protected void showInfoDialog() {
@@ -39,7 +42,7 @@ public abstract class SettingComponent extends MaterialCardView {
                 .show();
     }
 
-    public abstract double getValue();
+    public abstract void refreshValue();
 
     protected abstract void initializeComponents();
 

@@ -15,6 +15,13 @@
             android:id="@+id/electric_meter_report"
             android:icon="@drawable/ic_electric_meter"
             android:title="@string/electric_meter_report_title"
-            app:showAsAction="always"/>
+            app:showAsAction="always" />
+
+        <item
+            android:id="@+id/settings_menu"
+            android:icon="@drawable/ic_settings"
+            android:title="@string/settings"
+            app:showAsAction="always" />
+
     </group>
 </menu>

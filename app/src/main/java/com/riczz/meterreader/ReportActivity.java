@@ -130,16 +130,11 @@ public final class ReportActivity extends AppCompatActivity {
                 break;
             case ANALYZE_TAKEN_IMAGE:
                 assert  data != null;
+                if (null != previewImageViewer) removePreview();
                 if (data.hasExtra("DIALS_VALUE")) {
                     setDialValues(data.getDoubleExtra("DIALS_VALUE", 0.0d));
-
-                    if (null != previewImageViewer) {
-                        removePreview();
-                    } else {
-                        addPreview();
-                    }
+                    addPreview();
                 } else {
-                    if (null != previewImageViewer) removePreview();
                     Toast.makeText(this,
                             getString(R.string.intent_data_error),
                             Toast.LENGTH_SHORT

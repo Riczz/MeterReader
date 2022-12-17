@@ -1,4 +1,8 @@
 <resources>
+    <!--  Version strings  -->
+    <string name="opencv_version_text">OpenCV ver. %s</string>
+    <string name="app_version_text">Meter Reader %s</string>
+
     <!--  UI Elements  -->
     <string name="app_name">Meter Reader</string>
     <string name="gas_meter_report_title">Gázóra állás leolvasás</string>
@@ -23,6 +27,7 @@
     <string name="retry">Próbálkozás újból</string>
     <string name="result_images">Eredményképek</string>
     <string name="reset_defaults">Alapértelmezett beállítások</string>
+    <string name="settings">Beállítások</string>
 
     <!-- Drawables -->
     <drawable name="dial_frame_gas">@drawable/number_dial</drawable>
@@ -55,8 +60,19 @@
     <string name="category_color_correction">Színkorrekció</string>
     <string name="category_digit_detection">Számjegy detektció</string>
 
+    <!--  Meter type categories  -->
+    <string name="meter_type_gas">Gázóra</string>
+    <string name="meter_type_electric">Villanyóra</string>
+    <string name="category_all">Mind</string>
+
     <!--  Misc -->
+    <string name="reset_defaults_title">Beállítások visszaállítása</string>
+    <string name="reset_defaults_description">Alapértelmezés visszaállítása a következőhöz:</string>
     <string name="electric_dial_frame_desc">Villanyóra kép keret</string>
     <string name="gas_dial_frame_desc">Gázóra kép keret</string>
     <string name="error_details_dropdown_desc">Hiba részletek lenyíló menü</string>
+    <string name="gas_config_title">Gázóra beállítások</string>
+    <string name="electric_config_title">Villanyóra beállítások</string>
+    <string name="config_red_dial_frame_title">Vörös keret meghatározása</string>
+    <string name="config_last_digit_frame_title">Utolsó számjegy meghatározása</string>
 </resources>

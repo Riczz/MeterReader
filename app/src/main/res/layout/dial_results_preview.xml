@@ -6,108 +6,47 @@
     android:layout_height="match_parent"
     tools:context=".PreviewActivity">
 
-    <TextView
-        android:id="@+id/resultImagesTextView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
-        android:text="@string/result_images"
-        android:textSize="20sp"
-        app:layout_constraintEnd_toEndOf="parent"
+    <ImageView
+        android:id="@+id/previousConfigArrow"
+        android:layout_width="35dp"
+        android:layout_height="35dp"
+        android:backgroundTint="#765B5B"
+        android:rotation="180"
+        android:scaleType="fitCenter"
+        android:scaleX="2"
+        android:scaleY="2"
+        app:layout_constraintBottom_toTopOf="@id/retryRecognitionButton"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@drawable/ic_dropdown_arrow"
+        app:tint="@color/green_700" />
 
-    <com.riczz.meterreader.view.ImageCategoryViewer
-        android:id="@+id/imageCategoryViewer"
-        android:layout_width="match_parent"
-        android:layout_height="200dp"
+    <ImageView
+        android:id="@+id/nextConfigArrow"
+        android:layout_width="35dp"
+        android:layout_height="35dp"
+        android:backgroundTint="#765B5B"
+        android:rotation="0"
+        android:scaleType="fitCenter"
+        android:scaleX="2"
+        android:scaleY="2"
+        app:layout_constraintBottom_toTopOf="@id/retryRecognitionButton"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/resultImagesTextView" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@drawable/ic_dropdown_arrow"
+        app:tint="@color/green_700" />
 
-    <ScrollView
-        android:id="@+id/settingsScrollView"
-        android:layout_width="match_parent"
-        android:layout_height="300dp"
-        android:layout_marginStart="10dp"
-        android:layout_marginTop="20dp"
-        android:layout_marginEnd="10dp"
-        app:layout_constraintBottom_toTopOf="@+id/retryRecognitionButton"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/imageCategoryViewer"
-        app:layout_constraintVertical_bias="0.0">
+    <ViewFlipper
+        android:id="@+id/configViewFlipper"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toTopOf="@id/retryRecognitionButton"
+        app:layout_constraintEnd_toStartOf="@id/nextConfigArrow"
+        app:layout_constraintStart_toEndOf="@id/previousConfigArrow"
+        app:layout_constraintTop_toTopOf="parent">
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical">
-
-            <com.riczz.meterreader.view.SettingSliderComponent
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                app:infoDescription="@string/info_sigmaX"
-                app:propertyName="Sigma X:"
-                app:stepSize="1.0"
-                app:valueMax="100.0"
-                app:valueMin="0.0" />
-
-            <com.riczz.meterreader.view.SettingSliderComponent
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                app:infoDescription="@string/info_sigmaX"
-                app:propertyName="Blur Kernel Size:"
-                app:stepSize="2.0"
-                app:valueMax="7.0"
-                app:valueMin="3.0" />
-
-            <com.riczz.meterreader.view.SettingComboBoxComponent
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                app:infoDescription="@string/info_sigmaX"
-                app:propertyName="Morphology Kernel Type:" />
-
-            <com.riczz.meterreader.view.SettingSliderComponent
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                app:infoDescription="@string/info_sigmaX"
-                app:propertyName="Threshold Value:" />
-
-            <com.riczz.meterreader.view.SettingSliderComponent
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                app:infoDescription="@string/info_sigmaX"
-                app:propertyName="Minimum Contour Area:"
-                app:stepSize="10.0"
-                app:valueMax="1000.0"
-                app:valueMin="0.0" />
-
-            <com.riczz.meterreader.view.SettingSliderComponent
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                app:infoDescription="@string/info_sigmaX"
-                app:propertyName="Maximum circularity:"
-                app:stepSize="0.01"
-                app:valueMax="1.0"
-                app:valueMin="0.0" />
-
-            <com.riczz.meterreader.view.SettingSliderComponent
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                app:infoDescription="@string/info_sigmaX"
-                app:propertyName="Dial Frame Width Multiplier:"
-                app:stepSize="0.01"
-                app:valueMax="5.0"
-                app:valueMin="1.0" />
-
-            <com.riczz.meterreader.view.SettingComboBoxComponent
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="40dp"
-                app:propertyName="Blur Sigma X:" />
-        </LinearLayout>
-    </ScrollView>
+<!--        <include layout="@layout/gas_meter_config_page" />-->
+    </ViewFlipper>
 
     <Button
         android:id="@+id/retryRecognitionButton"

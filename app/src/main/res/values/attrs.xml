@@ -1,6 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <declare-styleable name="meterAttributes">
+        <attr name="meterType" format="enum">
+            <enum name="GAS" value="0" />
+            <enum name="ELECTRIC" value="1" />
+        </attr>
+    </declare-styleable>
+
     <declare-styleable name="SettingComponent">
+        <attr name="meterType" />
         <attr name="propertyName" format="string" />
         <attr name="infoDescription" format="reference" />
         <attr name="dbColumnName" format="string" />
@@ -9,13 +17,11 @@
         <attr name="valueMax" format="float" />
         <attr name="stepSize" format="float" />
         <attr name="hint" format="string" />
+        <attr name="checked" format="boolean" />
     </declare-styleable>
 
     <declare-styleable name="ImageCategorySelector">
-        <attr name="meterType" format="enum">
-            <enum name="GAS" value="0" />
-            <enum name="ELECTRIC" value="1" />
-        </attr>
+        <attr name="meterType" />
         <attr name="comboBoxHeight" format="integer" />
     </declare-styleable>
 </resources>

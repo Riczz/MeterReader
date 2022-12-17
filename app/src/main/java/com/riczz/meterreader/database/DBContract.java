@@ -2,11 +2,21 @@ package com.riczz.meterreader.database;
 
 import android.provider.BaseColumns;
 
+import com.riczz.meterreader.enums.MeterType;
+
+import java.util.EnumMap;
 import java.util.Locale;
 
 public final class DBContract {
 
     private DBContract() {
+    }
+
+    static final EnumMap<MeterType, String> METER_TYPE_TABLE_NAMES = new EnumMap<>(MeterType.class);
+
+    static {
+        METER_TYPE_TABLE_NAMES.put(MeterType.GAS, Entry.TABLE_NAME_GAS_CFG);
+        METER_TYPE_TABLE_NAMES.put(MeterType.ELECTRIC, Entry.TABLE_NAME_ELECTRIC_CFG);
     }
 
     static final class Entry implements BaseColumns {
@@ -75,6 +85,8 @@ public final class DBContract {
     static final String SQL_INSERT_DEFAULT_GAS_ROW = String
             .format(Locale.ROOT, "INSERT INTO %s DEFAULT VALUES;", Entry.TABLE_NAME_GAS_CFG);
 
+    static final String SQL_CLEAR_GAS_TABLE = "DELETE FROM " + Entry.TABLE_NAME_GAS_CFG + ";";
+
     static final String SQL_DELETE_GAS_TABLE =
             "DROP TABLE IF EXISTS " + Entry.TABLE_NAME_GAS_CFG + ";";
 
@@ -122,6 +134,7 @@ public final class DBContract {
     static final String SQL_INSERT_DEFAULT_ELECTRIC_ROW = String
             .format(Locale.ROOT, "INSERT INTO %s DEFAULT VALUES;", Entry.TABLE_NAME_ELECTRIC_CFG);
 
+    static final String SQL_CLEAR_ELECTRIC_TABLE = "DELETE FROM " + Entry.TABLE_NAME_ELECTRIC_CFG + ";";
 
     static final String SQL_DELETE_ELECTRIC_TABLE =
             "DROP TABLE IF EXISTS " + Entry.TABLE_NAME_ELECTRIC_CFG + ";";

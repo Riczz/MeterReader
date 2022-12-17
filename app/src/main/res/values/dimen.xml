@@ -3,6 +3,8 @@
     <dimen name="image_viewer_report_height_dp">250dp</dimen>
     <dimen name="image_viewer_report_margin_start_dp">10dp</dimen>
     <dimen name="image_viewer_report_margin_end_dp">10dp</dimen>
+    <dimen name="reset_config_margin_start_dp">30dp</dimen>
+    <dimen name="reset_config_margin_end_dp">30dp</dimen>
 
     <!--  Image viewer component dimensions  -->
     <dimen name="image_viewer_margin_start_dp">10dp</dimen>

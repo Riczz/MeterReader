@@ -2,6 +2,7 @@ package com.riczz.meterreader.view;
 
 import android.content.Context;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.widget.TextView;
 
@@ -10,6 +11,7 @@ import androidx.annotation.NonNull;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.slider.Slider;
 import com.riczz.meterreader.R;
+import com.riczz.meterreader.enums.MeterType;
 
 import java.util.Locale;
 
@@ -26,14 +28,17 @@ public final class SettingSliderComponent extends SettingComponent {
 
         initializeComponents();
         initializeAttributes();
-
-        setValue(configSlider.getValueFrom());
+        setValue(dbHandler.getDoubleValue(meterType, dbColumnName, 0.0d));
 
         infoButton.setOnClickListener(button -> showInfoDialog());
 
-        sliderValueDescButton.setOnClickListener(button -> setValue(configSlider.getValue() - configSlider.getStepSize()));
+        sliderValueDescButton.setOnClickListener(button -> setValue(configSlider.getValue() - configSlider.getStepSize(), true));
+//            Log.e("ASD", "EVENT " + event.getAction());
+//            if (event.getAction() == MotionEvent.ACTION_DOWN) return button.performClick();
+//            return false;
+//        });
 
-        sliderValueAscButton.setOnClickListener(button -> setValue(configSlider.getValue() + configSlider.getStepSize()));
+        sliderValueAscButton.setOnClickListener(button -> setValue(configSlider.getValue() + configSlider.getStepSize(), true));
 
         configSlider.addOnSliderTouchListener(new Slider.OnSliderTouchListener() {
             @Override
@@ -41,9 +46,14 @@ public final class SettingSliderComponent extends SettingComponent {
 
             @Override
             public void onStopTrackingTouch(@NonNull Slider slider) {
-                setValue(slider.getValue());
+                setValue(slider.getValue(), true);
             }
         });
+    }
+
+    @Override
+    public void refreshValue() {
+        setValue(dbHandler.getDoubleValue(meterType, dbColumnName, 0.0d), true);
     }
 
     @Override
@@ -67,13 +77,18 @@ public final class SettingSliderComponent extends SettingComponent {
                 case R.styleable.SettingComponent_propertyName:
                     configPropertyName.setText(attributes.getString(attr));
                     break;
+                case R.styleable.SettingComponent_meterType:
+                    meterType = MeterType.values()[attributes.getInt(attr, 0)];
+                    break;
+                case R.styleable.SettingComponent_dbColumnName:
+                    dbColumnName = attributes.getString(attr);
+                    break;
                 case R.styleable.SettingComponent_infoDescription:
 //                    int descriptionId = attributes.getResourceId(attr, 0);
                     this.infoDescription = attributes.getString(attr);
                     break;
                 case R.styleable.SettingComponent_infoImage:
                     int imageId = attributes.getResourceId(attr, 0);
-//                    this.infoImage =
                     break;
                 case R.styleable.SettingComponent_valueMin:
                     configSlider.setValueFrom(attributes.getFloat(attr, 0.0f));
@@ -88,18 +103,26 @@ public final class SettingSliderComponent extends SettingComponent {
         }
     }
 
-    public void setValue(float value) {
+    public void setValue(double value, boolean updateDB) {
+        Log.e("ASD", "SET VALUE: " + value + " " + " UPDATE: " + updateDB);
         if (value < configSlider.getValueFrom()) {
             configSlider.setValue(configSlider.getValueFrom());
-        } else configSlider.setValue(Math.min(value, configSlider.getValueTo()));
+        } else configSlider.setValue((float) Math.min(value, configSlider.getValueTo()));
 
         sliderValueTextView.setText(String.format(
                 Locale.getDefault(),
                 "%.2f", configSlider.getValue())
         );
+
+        if (updateDB) {
+            dbHandler.updateConfig(meterType, dbColumnName, value);
+        }
     }
 
-    @Override
+    public void setValue(double value) {
+        setValue(value, false);
+    }
+
     public double getValue() {
         return configSlider.getValue();
     }

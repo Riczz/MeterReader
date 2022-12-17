@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content">
 
@@ -17,8 +16,10 @@
             android:layout_alignParentTop="true"
             android:layout_marginStart="10dp"
             android:layout_marginTop="0dp"
+            android:layout_marginEnd="10dp"
+            android:layout_toStartOf="@+id/configInfo"
             android:textColor="@color/cardview_dark_background"
-            android:textSize="20sp" />
+            android:textSize="14sp" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/sliderButtonDesc"
@@ -31,9 +32,8 @@
             android:insetRight="0dp"
             android:insetBottom="10dp"
             app:icon="@drawable/ic_minus"
-            app:iconGravity="textTop"
-            app:iconPadding="14dp"
-            app:iconSize="24dp"
+            app:iconGravity="top"
+            app:iconSize="20dp"
             app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.MyApp.Button.Rounded" />
 
         <com.google.android.material.slider.Slider

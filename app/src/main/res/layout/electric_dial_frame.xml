@@ -74,7 +74,7 @@
         app:layout_constraintHorizontal_chainStyle="spread"
         app:layout_constraintStart_toEndOf="@+id/guidelineWholeDialStart2"
         app:layout_constraintTop_toTopOf="@+id/guidelineTop2"
-        app:layout_constraintWidth_percent="0.12" />
+        app:layout_constraintWidth_percent="0.115" />
 
     <NumberPicker
         android:id="@+id/numberPicker12"
@@ -88,7 +88,7 @@
         app:layout_constraintBottom_toTopOf="@+id/guidelineBottom2"
         app:layout_constraintEnd_toStartOf="@id/numberPicker13"
         app:layout_constraintTop_toTopOf="@+id/guidelineTop2"
-        app:layout_constraintWidth_percent="0.12" />
+        app:layout_constraintWidth_percent="0.125" />
 
     <NumberPicker
         android:id="@+id/numberPicker13"
@@ -104,7 +104,7 @@
         app:layout_constraintEnd_toStartOf="@id/numberPicker14"
         app:layout_constraintHorizontal_chainStyle="spread"
         app:layout_constraintTop_toTopOf="@id/guidelineTop2"
-        app:layout_constraintWidth_percent="0.12" />
+        app:layout_constraintWidth_percent="0.13" />
 
     <NumberPicker
         android:id="@+id/numberPicker14"
@@ -118,7 +118,7 @@
         app:layout_constraintBottom_toBottomOf="@id/guidelineBottom2"
         app:layout_constraintEnd_toStartOf="@id/numberPicker15"
         app:layout_constraintTop_toTopOf="@id/guidelineTop2"
-        app:layout_constraintWidth_percent="0.12" />
+        app:layout_constraintWidth_percent="0.122" />
 
     <NumberPicker
         android:id="@+id/numberPicker15"
@@ -132,7 +132,7 @@
         app:layout_constraintBottom_toBottomOf="@id/guidelineBottom2"
         app:layout_constraintEnd_toStartOf="@id/numberPicker16"
         app:layout_constraintTop_toTopOf="@id/guidelineTop2"
-        app:layout_constraintWidth_percent="0.12" />
+        app:layout_constraintWidth_percent="0.122" />
 
     <NumberPicker
         android:id="@+id/numberPicker16"
@@ -161,6 +161,6 @@
         app:layout_constraintEnd_toStartOf="@id/guidelineFractionalDialEnd2"
         app:layout_constraintStart_toStartOf="@id/guidelineFractionalDialStart2"
         app:layout_constraintTop_toTopOf="@id/guidelineTop2"
-        app:layout_constraintWidth_percent="0.11" />
+        app:layout_constraintWidth_percent="0.12" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -2,6 +2,7 @@ package com.riczz.meterreader.imageprocessing;
 
 import android.graphics.Bitmap;
 
+import com.riczz.meterreader.database.model.Config;
 import com.riczz.meterreader.exception.FrameDetectionException;
 import com.riczz.meterreader.exception.NumberRecognizationException;
 
@@ -21,6 +22,8 @@ public interface IMeterImageRecognizer {
     double findDials(Mat image, RotatedRect rect, RotatedRect search, RotatedRect dst) throws FrameDetectionException;
 
     double findDials(Mat image, RotatedRect rect, RotatedRect search, RotatedRect dst, Mat resultPoints) throws FrameDetectionException;
+
+    void setConfig(Config config);
 
     void saveResultImages();
 }

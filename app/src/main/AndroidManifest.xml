@@ -27,14 +27,17 @@
         android:theme="@style/Theme.MeterReader.NoActionBar">
         <activity
             android:name=".PreviewActivity"
+            android:configChanges="orientation|screenSize|keyboardHidden"
             android:exported="false" />
         <activity
             android:name=".ReportActivity"
-            android:theme="@style/Theme.MeterReader"
+            android:configChanges="orientation|screenSize|keyboardHidden"
+            android:exported="false"
             android:screenOrientation="portrait"
-            android:exported="false" />
+            android:theme="@style/Theme.MeterReader" />
         <activity
             android:name=".MainActivity"
+            android:configChanges="orientation|screenSize|keyboardHidden"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

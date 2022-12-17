@@ -31,7 +31,7 @@ public final class ImageHandler implements IImageHandler {
 
     public ImageHandler(Context context) {
         this.context = context;
-        String imageDir = getExternalStorageDir().getAbsolutePath();
+        String imageDir = getStorageDir().getAbsolutePath();
 
         for (ImageType type : ImageType.values()) {
             File imageFolder = new File(imageDir + File.separator + type.getFolderName());
@@ -67,25 +67,43 @@ public final class ImageHandler implements IImageHandler {
 
     public List<Uri> getImageCategoryImages(ImageType imageType) {
         List<Uri> uris = new ArrayList<>();
-        File imageDir = new File(getExternalStorageDir(), imageType.getFolderName());
+        File imageDir = new File(getStorageDir(), imageType.getFolderName());
         File[] files = imageDir.listFiles();
         for (File file : Objects.requireNonNull(files)) uris.add(Uri.fromFile(file));
         return uris;
     }
 
+    public void clearDirectory() {
+        clearDirectory(getStorageDir());
+    }
+
+    @Override
+    public void clearDirectory(File directory) {
+        if (directory.isDirectory()) {
+            File[] files = directory.listFiles();
+
+            if (files != null) {
+                for (File file : files) {
+                    if (file.isFile()) file.delete();
+                    else clearDirectory(file);
+                }
+            }
+        }
+    }
+
     @NonNull
     private File createFile(String fileName) {
-        return new File(getExternalStorageDir(), fileName + "." + COMPRESS_FORMAT.name().toLowerCase(Locale.ROOT));
+        return new File(getStorageDir(), fileName + "." + COMPRESS_FORMAT.name().toLowerCase(Locale.ROOT));
     }
 
     @NonNull
     private File createFile(String fileName, ImageType imageType) {
-        String imageDir = getExternalStorageDir().getAbsolutePath();
+        String imageDir = getStorageDir().getAbsolutePath();
         String parentFolder = imageDir + File.separator + imageType.getFolderName();
         return new File(parentFolder, fileName + "." + COMPRESS_FORMAT.name().toLowerCase(Locale.ROOT));
     }
 
-    private File getExternalStorageDir() {
+    private File getStorageDir() {
         File directory;
 
         if (external) {

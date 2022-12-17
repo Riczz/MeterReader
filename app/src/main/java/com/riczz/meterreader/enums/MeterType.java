@@ -1,5 +1,9 @@
 package com.riczz.meterreader.enums;
 
+import android.content.Context;
+
+import com.riczz.meterreader.R;
+
 public enum MeterType {
     GAS(8, 3),
     ELECTRIC(7, 1);
@@ -24,5 +28,14 @@ public enum MeterType {
 
     public int getWholeDigits() {
         return wholeDigits;
+    }
+
+    public static String getMeterCategoryName(Context context, MeterType meterType) {
+        if (meterType == MeterType.GAS) {
+            return context.getString(R.string.meter_type_gas);
+        } else if (meterType == MeterType.ELECTRIC) {
+            return context.getString(R.string.meter_type_electric);
+        }
+        return null;
     }
 }

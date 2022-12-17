@@ -7,14 +7,16 @@ import com.riczz.meterreader.enums.ImageType;
 
 import org.opencv.core.Mat;
 
+import java.io.File;
+
 public interface IImageHandler {
     Uri saveImage(Mat image, ImageType imageType);
 
     Uri saveImage(Mat image, ImageType imageType, String imageName);
 
-    //    public Bitmap loadImage(String fileName);
-
     ImageHandler setExternal(boolean external);
+
+    void clearDirectory(File directory);
 
     static boolean isExternalStorageWritable() {
         String state = Environment.getExternalStorageState();

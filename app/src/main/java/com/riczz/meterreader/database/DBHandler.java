@@ -5,13 +5,20 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.util.Log;
 
 import com.riczz.meterreader.database.model.ElectricMeterConfig;
 import com.riczz.meterreader.database.model.GasMeterConfig;
+import com.riczz.meterreader.enums.MeterType;
+
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 public final class DBHandler extends SQLiteOpenHelper {
     public static final int DATABASE_VERSION = 6;
     public static final String DATABASE_NAME = "config.db";
+    private static final String LOG_TAG = DBHandler.class.getName();
 
     public DBHandler(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -46,27 +53,6 @@ public final class DBHandler extends SQLiteOpenHelper {
         return null;
     }
 
-    public void updateConfig(GasMeterConfig config) {
-        SQLiteDatabase db = getWritableDatabase();
-        ContentValues values = new ContentValues();
-        values.put(DBContract.Entry.COL_DIGIT_FRAME_EXTENSION_MULTIPLIER, config.getDigitFrameExtensionMultiplier());
-        values.put(DBContract.Entry.COL_DIGIT_FRAME_MAX_EXTENSION_COUNT, config.getDigitFrameMaxExtensionCount());
-        values.put(DBContract.Entry.COL_MIN_DIAL_AREA, config.getMinDialArea());
-        values.put(DBContract.Entry.COL_MAX_SKEWNESS_DEG, config.getMaxSkewnessDeg());
-        values.put(DBContract.Entry.COL_MAX_BLACK_INTENSITY_RATIO, config.getMaxBlackIntensityRatio());
-        values.put(DBContract.Entry.COL_GAMMA_MULTIPLIER, config.getGammaMultiplier());
-        values.put(DBContract.Entry.COL_USE_COLOR_CORRECTION, config.isUseColorCorrection() ? 1 : 0);
-        values.put(DBContract.Entry.COL_DIGIT_MAX_WIDTH_RATIO, config.getDigitMaxWidthRatio());
-        values.put(DBContract.Entry.COL_DIGIT_MAX_HEIGHT_RATIO, config.getDigitMaxHeightRatio());
-        values.put(DBContract.Entry.COL_DIGIT_HEIGHT_WIDTH_RATIO_MIN, config.getDigitHeightWidthRatioMin());
-        values.put(DBContract.Entry.COL_DIGIT_HEIGHT_WIDTH_RATIO_MAX, config.getDigitHeightWidthRatioMax());
-        values.put(DBContract.Entry.COL_DIGIT_MIN_BORDER_DIST, config.getDigitMinBorderDist());
-        values.put(DBContract.Entry.COL_DIGIT_BLACK_BORDER_THICKNESS, config.getDigitBlackBorderThickness());
-        values.put(DBContract.Entry.COL_MAX_CIRCULARITY, config.getMaxCircularity());
-        db.update(DBContract.Entry.TABLE_NAME_GAS_CFG, values, null, null);
-        db.close();
-    }
-
     public ElectricMeterConfig getElectricMeterConfig() {
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = db.rawQuery(DBContract.SQL_SELECT_ELECTRIC_ROW, null);
@@ -97,25 +83,86 @@ public final class DBHandler extends SQLiteOpenHelper {
         return null;
     }
 
-    public void updateConfig(ElectricMeterConfig config) {
+    public boolean getBooleanValue(MeterType meterType, String column, boolean defaultValue) {
+        SQLiteDatabase db = getReadableDatabase();
+        Cursor cursor = db.query(DBContract.METER_TYPE_TABLE_NAMES.get(meterType),
+                new String[]{column},
+                null, null,
+                null, null,
+                null, "1"
+        );
+        cursor.moveToFirst();
+        boolean propertyValue = defaultValue;
+
+        if (cursor.getColumnCount() == 1) {
+            try {
+                propertyValue = cursor.getInt(0) != 0;
+                Log.e("ASD", "PROPERTY VALUE GET: " + cursor.getInt(0));
+            } catch (Exception e) {
+                Log.e(LOG_TAG, "Error while getting boolean value from column " + column + ".");
+            }
+        }
+        cursor.close();
+        db.close();
+        return propertyValue;
+    }
+
+    public double getDoubleValue(MeterType meterType, String column, double defaultValue) {
+        SQLiteDatabase db = getReadableDatabase();
+        Cursor cursor = db.query(DBContract.METER_TYPE_TABLE_NAMES.get(meterType),
+                new String[]{column},
+                null, null,
+                null, null,
+                null, "1"
+        );
+        cursor.moveToFirst();
+        double propertyValue = defaultValue;
+
+        if (cursor.getColumnCount() == 1) {
+            try {
+                propertyValue = cursor.getDouble(0);
+//                Log.e("ASD", "PROPERTY VALUE GET: " + propertyValue);
+            } catch (Exception e) {
+                Log.e(LOG_TAG, "Error while getting double value from column " + column + ".");
+            }
+        }
+        cursor.close();
+        db.close();
+        return propertyValue;
+    }
+
+    public void resetDefaults() {
+        Set<MeterType> meterTypes = new HashSet<>(Arrays.asList(MeterType.values()));
+        resetDefaults(meterTypes);
+    }
+
+    public void resetDefaults(Set<MeterType> categories) {
+        SQLiteDatabase db = getWritableDatabase();
+        if (categories.contains(MeterType.GAS)) {
+            Log.e("ASD", "CONTAINS GAS!!!");
+            db.execSQL(DBContract.SQL_CLEAR_GAS_TABLE);
+            db.execSQL(DBContract.SQL_INSERT_DEFAULT_GAS_ROW);
+        }
+        if (categories.contains(MeterType.ELECTRIC)) {
+            Log.e("ASD", "CONTAINS ELECTRIC!!!");
+            db.execSQL(DBContract.SQL_CLEAR_ELECTRIC_TABLE);
+            db.execSQL(DBContract.SQL_INSERT_DEFAULT_ELECTRIC_ROW);
+        }
+    }
+
+    public void updateConfig(MeterType meterType, String column, boolean value) {
         SQLiteDatabase db = getWritableDatabase();
         ContentValues values = new ContentValues();
-        values.put(DBContract.Entry.COL_DIGIT_FRAME_EXTENSION_MULTIPLIER, config.getDigitFrameExtensionMultiplier());
-        values.put(DBContract.Entry.COL_DIGIT_FRAME_MAX_EXTENSION_COUNT, config.getDigitFrameMaxExtensionCount());
-        values.put(DBContract.Entry.COL_MIN_DIAL_AREA, config.getMinDialArea());
-        values.put(DBContract.Entry.COL_MAX_SKEWNESS_DEG, config.getMaxSkewnessDeg());
-        values.put(DBContract.Entry.COL_MAX_BLACK_INTENSITY_RATIO, config.getMaxBlackIntensityRatio());
-        values.put(DBContract.Entry.COL_GAMMA_MULTIPLIER, config.getGammaMultiplier());
-        values.put(DBContract.Entry.COL_USE_COLOR_CORRECTION, config.isUseColorCorrection() ? 1 : 0);
-        values.put(DBContract.Entry.COL_DIGIT_MAX_WIDTH_RATIO, config.getDigitMaxWidthRatio());
-        values.put(DBContract.Entry.COL_DIGIT_MAX_HEIGHT_RATIO, config.getDigitMaxHeightRatio());
-        values.put(DBContract.Entry.COL_DIGIT_HEIGHT_WIDTH_RATIO_MIN, config.getDigitHeightWidthRatioMin());
-        values.put(DBContract.Entry.COL_DIGIT_HEIGHT_WIDTH_RATIO_MAX, config.getDigitHeightWidthRatioMax());
-        values.put(DBContract.Entry.COL_DIGIT_MIN_BORDER_DIST, config.getDigitMinBorderDist());
-        values.put(DBContract.Entry.COL_DIGIT_BLACK_BORDER_THICKNESS, config.getDigitBlackBorderThickness());
-        values.put(DBContract.Entry.COL_MIN_RECTANGULARITY, config.getMinRectangularity());
-        values.put(DBContract.Entry.COL_MAX_LINE_DISTANCE, config.getMaxLineDistance());
-        db.update(DBContract.Entry.TABLE_NAME_ELECTRIC_CFG, values, null, null);
+        values.put(column, value ? 1 : 0);
+        db.update(DBContract.METER_TYPE_TABLE_NAMES.get(meterType), values, null, null);
+        db.close();
+    }
+
+    public void updateConfig(MeterType meterType, String column, double value) {
+        SQLiteDatabase db = getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(column, value);
+        db.update(DBContract.METER_TYPE_TABLE_NAMES.get(meterType), values, null, null);
         db.close();
     }
 

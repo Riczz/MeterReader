@@ -185,7 +185,7 @@ public final class ImageCategoryViewer extends ConstraintLayout {
         previousImageArrow.setOnClickListener(view -> {
             if (null != currentViewFlipper) {
                 currentViewFlipper.showPrevious();
-                ((PhotoView)currentViewFlipper.getChildAt(currentViewFlipper.getDisplayedChild()))
+                ((PhotoView) currentViewFlipper.getChildAt(currentViewFlipper.getDisplayedChild()))
                         .setScale(1.0f);
             }
         });
@@ -193,7 +193,7 @@ public final class ImageCategoryViewer extends ConstraintLayout {
         nextImageArrow.setOnClickListener(view -> {
             if (null != currentViewFlipper) {
                 currentViewFlipper.showNext();
-                ((PhotoView)currentViewFlipper.getChildAt(currentViewFlipper.getDisplayedChild()))
+                ((PhotoView) currentViewFlipper.getChildAt(currentViewFlipper.getDisplayedChild()))
                         .setScale(1.0f);
             }
         });
@@ -221,8 +221,8 @@ public final class ImageCategoryViewer extends ConstraintLayout {
         for (int i = 0; i < attributes.getIndexCount(); i++) {
             int attr = attributes.getIndex(i);
 
-            if (attr == R.styleable.ImageCategorySelector_meterType) {
-                setMeterType(MeterType.values()[attributes.getInt(attr,0)]);
+            if (attr == R.styleable.meterAttributes_meterType) {
+                setMeterType(MeterType.values()[attributes.getInt(attr, 0)]);
             } else if (attr == R.styleable.ImageCategorySelector_comboBoxHeight) {
                 setComboBoxHeightSp(attributes.getInt(attr, 14));
             } else {

@@ -3,6 +3,7 @@
     <color name="green_700">#64DD17</color>
     <color name="green_400">#76FF03</color>
     <color name="green_200">#B2FF59</color>
+    <color name="unavailable">#C0C0C0</color>
     <color name="purple_500">#FF6200EE</color>
     <color name="purple_700">#FF3700B3</color>
     <color name="black">#FF000000</color>
