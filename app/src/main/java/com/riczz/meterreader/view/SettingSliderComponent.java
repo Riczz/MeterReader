@@ -2,7 +2,6 @@ package com.riczz.meterreader.view;
 
 import android.content.Context;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.widget.TextView;
 
@@ -13,14 +12,13 @@ import com.google.android.material.slider.Slider;
 import com.riczz.meterreader.R;
 import com.riczz.meterreader.enums.MeterType;
 
-import java.util.Locale;
-
 public final class SettingSliderComponent extends SettingComponent {
 
     private Slider configSlider;
     private MaterialButton sliderValueDescButton;
     private MaterialButton sliderValueAscButton;
     private TextView sliderValueTextView;
+    private final int decimalLength;
 
     public SettingSliderComponent(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -28,16 +26,18 @@ public final class SettingSliderComponent extends SettingComponent {
 
         initializeComponents();
         initializeAttributes();
+
+        decimalLength = String.valueOf(configSlider.getStepSize()).split("[.]")[1].length();
         setValue(dbHandler.getDoubleValue(meterType, dbColumnName, 0.0d));
 
         infoButton.setOnClickListener(button -> showInfoDialog());
-
         sliderValueDescButton.setOnClickListener(button -> setValue(configSlider.getValue() - configSlider.getStepSize(), true));
         sliderValueAscButton.setOnClickListener(button -> setValue(configSlider.getValue() + configSlider.getStepSize(), true));
 
         configSlider.addOnSliderTouchListener(new Slider.OnSliderTouchListener() {
             @Override
-            public void onStartTrackingTouch(@NonNull Slider slider) {}
+            public void onStartTrackingTouch(@NonNull Slider slider) {
+            }
 
             @Override
             public void onStopTrackingTouch(@NonNull Slider slider) {
@@ -99,14 +99,17 @@ public final class SettingSliderComponent extends SettingComponent {
     }
 
     public void setValue(double value, boolean updateDB) {
-        if (value < configSlider.getValueFrom()) {
-            configSlider.setValue(configSlider.getValueFrom());
-        } else configSlider.setValue((float) Math.min(value, configSlider.getValueTo()));
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append(String.format("%." + decimalLength + "f", value));
+        stringBuilder.setCharAt(stringBuilder.length() - decimalLength - 1, '.');
+        value = Double.parseDouble(stringBuilder.toString());
 
-        sliderValueTextView.setText(String.format(
-                Locale.getDefault(),
-                "%.2f", configSlider.getValue())
+        configSlider.setValue((float) Math.max(
+                configSlider.getValueFrom(),
+                Math.min(value, configSlider.getValueTo()))
         );
+
+        sliderValueTextView.setText(String.format("%." + decimalLength + "f", configSlider.getValue()));
 
         if (updateDB) {
             dbHandler.updateConfig(meterType, dbColumnName, value);

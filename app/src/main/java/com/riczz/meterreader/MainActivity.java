@@ -16,7 +16,7 @@ import org.opencv.android.OpenCVLoader;
 public final class MainActivity extends AppCompatActivity {
 
     private static final String LOG_TAG = MainActivity.class.getName();
-    private static final String APP_VERSION = "1.0";
+    private static final String APP_VERSION = "1.0.0";
 
     private DrawerLayout drawerLayout;
     private MaterialToolbar topAppbar;
@@ -74,5 +74,13 @@ public final class MainActivity extends AppCompatActivity {
 
             return true;
         });
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (null != navigationView && null != navigationView.getCheckedItem()) {
+            navigationView.getCheckedItem().setChecked(false);
+        }
     }
 }

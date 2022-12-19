@@ -28,7 +28,8 @@
         <activity
             android:name=".PreviewActivity"
             android:configChanges="orientation|screenSize|keyboardHidden"
-            android:exported="false" />
+            android:exported="false"
+            android:theme="@style/Theme.MeterReader" />
         <activity
             android:name=".ReportActivity"
             android:configChanges="orientation|screenSize|keyboardHidden"

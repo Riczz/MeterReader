@@ -16,10 +16,7 @@
         android:layout_marginEnd="10dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
-
-<!--        <include layout="@layout/gas_dial_frame" />-->
-    </RelativeLayout>
+        app:layout_constraintTop_toTopOf="parent" />
 
     <LinearLayout
         android:id="@+id/linearLayout"
@@ -40,7 +37,7 @@
             android:layout_height="match_parent"
             android:orientation="horizontal">
 
-            <Button
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/takePhotoButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -51,17 +48,18 @@
                 app:iconGravity="textEnd"
                 app:iconPadding="10dp" />
 
-            <Button
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/galleryButton"
                 android:layout_width="40dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:isScrollContainer="false"
                 app:icon="@drawable/ic_gallery"
-                app:iconGravity="textStart" />
+                app:iconGravity="textStart"
+                app:iconPadding="0dp" />
         </LinearLayout>
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/sendReportButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

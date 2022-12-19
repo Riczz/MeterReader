@@ -261,16 +261,16 @@ public final class ElectricMeterImageRecognizer extends MeterImageRecognizer imp
         Mat warped = CvHelper.warpBirdsEye(image, pointsToWarp, image.width(), DIAL_IMAGE_HEIGHT);
         Mat corrected = CvHelper.rotate(warped, -skewness);
 
-        resultImages.put(Pair.create(image, "Resized"), ImageType.FRAME_DETECTION);
-        resultImages.put(Pair.create(median, "Blurred"), ImageType.FRAME_DETECTION);
-        resultImages.put(Pair.create(canny, "Canny"), ImageType.FRAME_DETECTION);
-        resultImages.put(Pair.create(linedImage, "Lines_orig"), ImageType.FRAME_DETECTION);
-        resultImages.put(Pair.create(filteredLineImage, "Lines_filtered"), ImageType.FRAME_DETECTION);
-        resultImages.put(Pair.create(regionMask, "Region_mask"), ImageType.FRAME_DETECTION);
-        resultImages.put(Pair.create(redDialMask, "Red_dial_mask"), ImageType.FRAME_DETECTION);
-        resultImages.put(Pair.create(modified, "Modified"), ImageType.FRAME_DETECTION);
-        resultImages.put(Pair.create(warped, "Warped"), ImageType.FRAME_DETECTION);
-        resultImages.put(Pair.create(corrected, "Corrected"), ImageType.FRAME_DETECTION);
+        resultImages.put(Pair.create(image, "001_Resized"), ImageType.FRAME_DETECTION);
+        resultImages.put(Pair.create(median, "002_Blurred"), ImageType.FRAME_DETECTION);
+        resultImages.put(Pair.create(linedImage, "003_Lines_orig"), ImageType.FRAME_DETECTION);
+        resultImages.put(Pair.create(filteredLineImage, "004_Lines_filtered"), ImageType.FRAME_DETECTION);
+        resultImages.put(Pair.create(regionMask, "005_Region_mask"), ImageType.FRAME_DETECTION);
+        resultImages.put(Pair.create(redDialMask, "006_Red_dial_mask"), ImageType.FRAME_DETECTION);
+        resultImages.put(Pair.create(canny, "007_Canny"), ImageType.FRAME_DETECTION);
+        resultImages.put(Pair.create(modified, "008_Modified"), ImageType.FRAME_DETECTION);
+        resultImages.put(Pair.create(warped, "009_Warped"), ImageType.FRAME_DETECTION);
+        resultImages.put(Pair.create(corrected, "010_Corrected"), ImageType.FRAME_DETECTION);
         return corrected;
     }
 }

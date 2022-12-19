@@ -21,6 +21,7 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.ViewFlipper;
 
+import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.content.res.AppCompatResources;
 import androidx.constraintlayout.widget.ConstraintLayout;
@@ -46,6 +47,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -56,6 +58,7 @@ public final class PreviewActivity extends AppCompatActivity {
     private static final int TASK_COUNT = 3;
     private static final String LOG_TAG = PreviewActivity.class.getName();
 
+    private ActionBar actionBar;
     private Bitmap rawImage;
     private ImageHandler imageHandler;
     private Drawable progressCircle;
@@ -82,6 +85,10 @@ public final class PreviewActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_preview);
+
+        actionBar = Objects.requireNonNull(getSupportActionBar());
+        actionBar.setTitle(getString(R.string.settings));
+        actionBar.setDisplayHomeAsUpEnabled(true);
 
         isSettingsOnlyPage = (getIntent().hasExtra("SETTINGS_ONLY") &&
                 getIntent().getBooleanExtra("SETTINGS_ONLY", false)
@@ -114,6 +121,12 @@ public final class PreviewActivity extends AppCompatActivity {
         } else {
             initSettingsPage();
         }
+    }
+
+    @Override
+    public boolean onSupportNavigateUp(){
+        finish();
+        return true;
     }
 
     private void executeDialRecognition() {
@@ -167,6 +180,7 @@ public final class PreviewActivity extends AppCompatActivity {
         ImageView previousConfigButton = findViewById(R.id.previousConfigArrow);
         ImageView nextConfigButton = findViewById(R.id.nextConfigArrow);
         configViewFlipper = findViewById(R.id.configViewFlipper);
+        actionBar.show();
 
         configViewFlipper.removeAllViews();
         getLayoutInflater().inflate(R.layout.gas_meter_config_page, configViewFlipper, true);
@@ -217,7 +231,7 @@ public final class PreviewActivity extends AppCompatActivity {
             settingsPage.invalidate();
 
             // Change reset defaults button color
-            ((Button)settingsPage.findViewById(R.id.resetDefaultsButton))
+            settingsPage.findViewById(R.id.resetDefaultsButton)
                     .setBackgroundColor(getColor(R.color.green_400));
 
         } else if (!retryButton.hasOnClickListeners()) {
@@ -435,6 +449,7 @@ public final class PreviewActivity extends AppCompatActivity {
 
     private void resetProgress() {
         resetProgressCircle();
+        actionBar.hide();
         currentTaskNumber = 1;
         viewFlipper.setDisplayedChild(0);
         imageHandler.clearDirectory();

@@ -48,10 +48,10 @@ import java.util.stream.Collectors;
 public class MeterImageRecognizer implements IMeterImageRecognizer {
 
     private static final String LOG_TAG = MeterImageRecognizer.class.getName();
-    protected static final String TFLITE_MODEL_ASSET_PATH = "dial_model.tflite";
-    protected static final int DIAL_IMAGE_HEIGHT = 400;
     private static final Scalar HSV_BLACK_INTENSITY_LOWER = new Scalar(0, 0, 0);
     private static final Scalar HSV_BLACK_INTENSITY_UPPER = new Scalar(180, 255, 120);
+    protected static final String TFLITE_MODEL_ASSET_PATH = "dial_model.tflite";
+    protected static final int DIAL_IMAGE_HEIGHT = 400;
 
     protected Config config;
     protected Interpreter tflite;
@@ -218,21 +218,22 @@ public class MeterImageRecognizer implements IMeterImageRecognizer {
 
         Mat warped = CvHelper.warpBirdsEye(image, pointsToWarp, image.width(), DIAL_IMAGE_HEIGHT);
 
-        resultImages.put(Pair.create(image, "Resized"), ImageType.FRAME_DETECTION);
-        resultImages.put(Pair.create(morphedImage, "Morphed"), ImageType.FRAME_DETECTION);
-        resultImages.put(Pair.create(blurredImage, "Blurred"), ImageType.FRAME_DETECTION);
-        resultImages.put(Pair.create(bgMax, "BGMax"), ImageType.FRAME_DETECTION);
-        resultImages.put(Pair.create(subtracted, "Subtracted"), ImageType.FRAME_DETECTION);
-        resultImages.put(Pair.create(contoured, "Contoured"), ImageType.FRAME_DETECTION);
-        resultImages.put(Pair.create(cannyImage, "Canny"), ImageType.FRAME_DETECTION);
-        resultImages.put(Pair.create(thresholdImage, "Thresholded"), ImageType.FRAME_DETECTION);
-        resultImages.put(Pair.create(dilatedImage, "Dilated"), ImageType.FRAME_DETECTION);
-        resultImages.put(Pair.create(modified, "Modified"), ImageType.FRAME_DETECTION);
-        resultImages.put(Pair.create(warped, "Warped"), ImageType.FRAME_DETECTION);
+        resultImages.put(Pair.create(image, "001_Resized"), ImageType.FRAME_DETECTION);
+        resultImages.put(Pair.create(morphedImage, "002_Morphed"), ImageType.FRAME_DETECTION);
+        resultImages.put(Pair.create(blurredImage, "003_Blurred"), ImageType.FRAME_DETECTION);
+        resultImages.put(Pair.create(bgMax, "004_BGMax"), ImageType.FRAME_DETECTION);
+        resultImages.put(Pair.create(subtracted, "005_Subtracted"), ImageType.FRAME_DETECTION);
+        resultImages.put(Pair.create(thresholdImage, "006_Thresholded"), ImageType.FRAME_DETECTION);
+        resultImages.put(Pair.create(dilatedImage, "007_Dilated"), ImageType.FRAME_DETECTION);
+        resultImages.put(Pair.create(cannyImage, "008_Canny"), ImageType.FRAME_DETECTION);
+        resultImages.put(Pair.create(contouredOriginal, "009_Contoured_Original"), ImageType.FRAME_DETECTION);
+        resultImages.put(Pair.create(contoured, "010_Contoured"), ImageType.FRAME_DETECTION);
+        resultImages.put(Pair.create(modified, "011_Modified"), ImageType.FRAME_DETECTION);
+        resultImages.put(Pair.create(warped, "012_Warped"), ImageType.FRAME_DETECTION);
 
         try {
             Mat corrected = correctSkew(warped);
-            resultImages.put(Pair.create(corrected, "Corrected"), ImageType.FRAME_DETECTION);
+            resultImages.put(Pair.create(corrected, "013_Corrected"), ImageType.FRAME_DETECTION);
             return corrected;
         } catch (SkewnessCorrectionException e) {
             e.printStackTrace();
@@ -294,11 +295,11 @@ public class MeterImageRecognizer implements IMeterImageRecognizer {
         Log.d(LOG_TAG, String.format("Skewness amount: %.16f\n", skewness));
 
         Mat skewnessCorrected = CvHelper.rotate(image, -skewness);
-        resultImages.put(Pair.create(thresholded, "Thresholded"), ImageType.SKEWNESS_CORRECTION);
-        resultImages.put(Pair.create(morphOpen, "MorphOpen"), ImageType.SKEWNESS_CORRECTION);
-        resultImages.put(Pair.create(morphClose, "MorphClose"), ImageType.SKEWNESS_CORRECTION);
-        resultImages.put(Pair.create(canny, "Canny"), ImageType.SKEWNESS_CORRECTION);
-        resultImages.put(Pair.create(linedImage, "Lines"), ImageType.SKEWNESS_CORRECTION);
+        resultImages.put(Pair.create(thresholded, "001_Thresholded"), ImageType.SKEWNESS_CORRECTION);
+        resultImages.put(Pair.create(morphOpen, "002_MorphOpen"), ImageType.SKEWNESS_CORRECTION);
+        resultImages.put(Pair.create(morphClose, "003_MorphClose"), ImageType.SKEWNESS_CORRECTION);
+        resultImages.put(Pair.create(canny, "004_Canny"), ImageType.SKEWNESS_CORRECTION);
+        resultImages.put(Pair.create(linedImage, "005_Lines"), ImageType.SKEWNESS_CORRECTION);
         return skewnessCorrected;
     }
 
@@ -381,8 +382,8 @@ public class MeterImageRecognizer implements IMeterImageRecognizer {
             }
         }
 
-        resultImages.put(Pair.create(morphed, "Morphed"), ImageType.DIAL_SEARCH);
-        resultImages.put(Pair.create(cannyImage, "Canny"), ImageType.DIAL_SEARCH);
+        resultImages.put(Pair.create(morphed, "001_Morphed"), ImageType.DIAL_SEARCH);
+        resultImages.put(Pair.create(cannyImage, "002_Canny"), ImageType.DIAL_SEARCH);
         int maskCount = 0;
 
         for (MatOfPoint contour : contours) {
@@ -415,7 +416,7 @@ public class MeterImageRecognizer implements IMeterImageRecognizer {
                 dialFrameRect = contourRect;
             }
 
-            resultImages.put(Pair.create(cropped, "Cropped_" + maskCount++), ImageType.DIAL_SEARCH);
+            resultImages.put(Pair.create(cropped, "003_Cropped_" + maskCount++), ImageType.DIAL_SEARCH);
         }
 
         dst.set(new double[]{
@@ -461,10 +462,10 @@ public class MeterImageRecognizer implements IMeterImageRecognizer {
         Mat result = new Mat();
         Imgproc.cvtColor(merged, result, Imgproc.COLOR_Lab2RGB);
 
-        resultImages.put(Pair.create(median, "Median"), ImageType.COLOR_CORRECTION);
-        resultImages.put(Pair.create(corrected, "Auto_BG"), ImageType.COLOR_CORRECTION);
-        resultImages.put(Pair.create(gammaCorrected, "Gamma"), ImageType.COLOR_CORRECTION);
-        resultImages.put(Pair.create(result, "Result"), ImageType.COLOR_CORRECTION);
+        resultImages.put(Pair.create(median, "001_Median"), ImageType.COLOR_CORRECTION);
+        resultImages.put(Pair.create(corrected, "002_Auto_BG"), ImageType.COLOR_CORRECTION);
+        resultImages.put(Pair.create(gammaCorrected, "003_Gamma"), ImageType.COLOR_CORRECTION);
+        resultImages.put(Pair.create(result, "004_Result"), ImageType.COLOR_CORRECTION);
         return result;
     }
 
@@ -489,7 +490,7 @@ public class MeterImageRecognizer implements IMeterImageRecognizer {
 
         Mat morphKernel = Imgproc.getStructuringElement(Imgproc.MORPH_ELLIPSE, new Size(6, 12));
         Imgproc.morphologyEx(niblack.clone(), morphImages.get(0), Imgproc.MORPH_OPEN, morphKernel, new Point(-1, -1));
-        resultImages.put(Pair.create(morphImages.get(0), "Morphed"), ImageType.DIGIT_DETECTION);
+        resultImages.put(Pair.create(morphImages.get(0), "002_Morphed"), ImageType.DIGIT_DETECTION);
 
         // Get rid of top and bottom border on electricity meter image
         if (meterType == MeterType.ELECTRIC) {
@@ -503,7 +504,7 @@ public class MeterImageRecognizer implements IMeterImageRecognizer {
                     new Scalar(0), thickness, Imgproc.LINE_AA
             );
             morphImages.add(borderRemoved);
-            resultImages.put(Pair.create(borderRemoved, "Border removed"), ImageType.DIGIT_DETECTION);
+            resultImages.put(Pair.create(borderRemoved, "003_Border removed"), ImageType.DIGIT_DETECTION);
         }
 
         // Morphological closing to connect the dials vertically
@@ -517,7 +518,7 @@ public class MeterImageRecognizer implements IMeterImageRecognizer {
         );
 
         resultImages.put(
-                Pair.create(morphImages.get(morphImages.size() - 1), "Contoured_orig"),
+                Pair.create(morphImages.get(morphImages.size() - 1), "004_Contoured_orig"),
                 ImageType.DIGIT_DETECTION
         );
 
@@ -577,7 +578,7 @@ public class MeterImageRecognizer implements IMeterImageRecognizer {
         );
 
         resultImages.put(
-                Pair.create(morphImages.get(morphImages.size() - 1), "Connected"),
+                Pair.create(morphImages.get(morphImages.size() - 1), "006_Connected"),
                 ImageType.DIGIT_DETECTION
         );
 
@@ -675,9 +676,9 @@ public class MeterImageRecognizer implements IMeterImageRecognizer {
         Core.bitwise_and(result, result, resultMask);
 
         // Save output images
-        resultImages.put(Pair.create(niblack, "Niblack"), ImageType.DIGIT_DETECTION);
-        resultImages.put(Pair.create(contoured, "Contoured"), ImageType.DIGIT_DETECTION);
-        resultImages.put(Pair.create(result, "Result"), ImageType.DIGIT_DETECTION);
+        resultImages.put(Pair.create(niblack, "001_Niblack"), ImageType.DIGIT_DETECTION);
+        resultImages.put(Pair.create(contoured, "005_Contoured"), ImageType.DIGIT_DETECTION);
+        resultImages.put(Pair.create(result, "007_Result"), ImageType.DIGIT_DETECTION);
 
         // Return detected dial value or throw exception in case of failure
         if (digitsValue.length() == 0) {

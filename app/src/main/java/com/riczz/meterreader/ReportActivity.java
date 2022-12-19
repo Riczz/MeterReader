@@ -11,7 +11,6 @@ import android.provider.MediaStore;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.NumberPicker;
 import android.widget.Toast;
 
@@ -23,6 +22,7 @@ import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.constraintlayout.widget.ConstraintSet;
 import androidx.core.app.ActivityCompat;
 
+import com.google.android.material.button.MaterialButton;
 import com.riczz.meterreader.database.DBHandler;
 import com.riczz.meterreader.database.model.Config;
 import com.riczz.meterreader.enums.ImageType;
@@ -31,26 +31,29 @@ import com.riczz.meterreader.view.ImageCategoryViewer;
 
 import org.apache.commons.lang3.StringUtils;
 
+import java.text.DecimalFormatSymbols;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 public final class ReportActivity extends AppCompatActivity {
     private static final String LOG_TAG = ReportActivity.class.getName();
+    public static final char DECIMAL_SEPARATOR = DecimalFormatSymbols.getInstance().getDecimalSeparator();
     private static final int REQUEST_WRITE_STORAGE_PERMISSION = 501;
     private static final int REQUEST_CAMERA_PERMISSION = 500;
     private static final int ANALYZE_TAKEN_IMAGE = 402;
     private static final int REQUEST_TAKE_PHOTO = 401;
     private static final int REQUEST_PICK_IMAGE = 400;
 
-    //    private Button sendReportButton;
-    private Button takePhotoButton;
-    private Button galleryButton;
     private ConstraintLayout dialContainer;
     private ConstraintLayout reportConstraintLayout;
+    private MaterialButton galleryButton;
+    private MaterialButton takePhotoButton;
     private ImageCategoryViewer previewImageViewer;
-    private final List<NumberPicker> dials = new ArrayList<>();
+    private List<NumberPicker> dials = new ArrayList<>();
 
     private DBHandler dbHandler;
     private Uri previewImageUri;
@@ -74,7 +77,6 @@ public final class ReportActivity extends AppCompatActivity {
         takePhotoButton = findViewById(R.id.takePhotoButton);
         galleryButton = findViewById(R.id.galleryButton);
         reportConstraintLayout = findViewById(R.id.reportConstraintLayout);
-//        sendReportButton = findViewById(R.id.sendReportButton);
         setupDials();
 
         galleryButton.setOnClickListener(button -> {
@@ -160,6 +162,12 @@ public final class ReportActivity extends AppCompatActivity {
         }
     }
 
+    @Override
+    public boolean onSupportNavigateUp(){
+        finish();
+        return true;
+    }
+
     private void addPreview() {
         previewImageViewer = new ImageCategoryViewer(this, meterType);
 
@@ -228,8 +236,14 @@ public final class ReportActivity extends AppCompatActivity {
         }
 
         String dialString = String
-                .format(Locale.getDefault(), "%." + numberOfFractionalDigits + "f", number);
-        dialString = StringUtils.leftPad(dialString, numberOfDigits+1, '0');
+                .format(Locale.getDefault(), "%." + numberOfFractionalDigits + "f", number)
+                .replace(String.valueOf(DECIMAL_SEPARATOR), "");
+
+        dialString = StringUtils.leftPad(dialString, numberOfDigits, '0');
+
+        dials = dials.stream()
+                .sorted(Comparator.comparingDouble(View::getX))
+                .collect(Collectors.toList());
 
         for (int i = 0; i < dials.size(); i++) {
             dials.get(i).setValue(Character.getNumericValue(dialString.charAt(i)));

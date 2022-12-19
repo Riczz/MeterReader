@@ -1,6 +1,6 @@
 <resources>
     <!--  Version strings  -->
-    <string name="opencv_version_text">OpenCV ver. %s</string>
+    <string name="opencv_version_text">OpenCV ver.: %s</string>
     <string name="app_version_text">Meter Reader %s</string>
 
     <!--  UI Elements  -->
@@ -27,6 +27,8 @@
     <string name="retry">Próbálkozás újból</string>
     <string name="result_images">Eredményképek</string>
     <string name="reset_defaults">Alapértelmezett beállítások</string>
+    <string name="reset_defaults_title">Beállítások visszaállítása</string>
+    <string name="reset_defaults_description">Alapértelmezés visszaállítása a következőhöz:</string>
     <string name="settings">Beállítások</string>
 
     <!-- Drawables -->
@@ -44,6 +46,34 @@
     <string name="results_failed_code">Hiba %1$d</string>
     <string name="error_dropdown_header">Részletek</string>
     <string name="error_code_notfound">Ismeretlen hibakód.</string>
+
+    <!--  Config parameter headers  -->
+    <string name="gas_config_title">Gázóra beállítások</string>
+    <string name="electric_config_title">Villanyóra beállítások</string>
+    <string name="setting_header_red_dial_frame_title">Vörös keret meghatározása</string>
+    <string name="setting_header_last_digit_frame">Utolsó számjegy meghatározása</string>
+    <string name="setting_header_color_correction">Színkorrekció</string>
+    <string name="setting_header_search_dials">Számlapkeret keresése</string>
+    <string name="setting_header_dial_detection">Számjegy detekció</string>
+
+    <!--  Config parameters  -->
+    <string name="setting_min_dial_area">Minimális kontúr terület (px):</string>
+    <string name="setting_max_line_distance">Maximális vonal távolság:</string>
+    <string name="setting_max_skewness_deg">Maximális dőlésszög (fok):</string>
+    <string name="setting_digit_frame_max_extension_count">Keret kiterjesztés iteráció limit:</string>
+    <string name="setting_digit_frame_extension_multiplier">Keret kiterjesztés nagysága (%):</string>
+    <string name="setting_max_black_intensity_ratio">Keret kiterjesztés érzékenysége:</string>
+    <string name="setting_dial_frame_width_multiplier">Vörös keret hosszabbítás szorzó:</string>
+    <string name="setting_min_rectangularity">Minimális téglalapszerűség (%):</string>
+    <string name="setting_color_correction">Színkorrekció alkalmazása:</string>
+    <string name="setting_digit_max_width_ratio">Számjegy max. szélesség (%):</string>
+    <string name="setting_digit_max_height_ratio">Számjegy max. magasság (%):</string>
+    <string name="setting_digit_height_width_ratio_min">Számjegy magasság/szélesség arány min. (%):</string>
+    <string name="setting_height_width_ratio_max">Számjegy magasság/szélesség arány max. (%):</string>
+    <string name="setting_digit_min_border_dist">Kontúr távolság a szélektől min. (%):</string>
+    <string name="setting_digit_black_border_thickness">Kontúr levágási keret vastagsága:</string>
+    <string name="setting_max_circularity">Maximális körszerűség (%):</string>
+    <string name="setting_gamma">Gamma:</string>
 
     <!--  Parameter descriptions  -->
     <string name="info_sigmaX">
@@ -66,13 +96,7 @@
     <string name="category_all">Mind</string>
 
     <!--  Misc -->
-    <string name="reset_defaults_title">Beállítások visszaállítása</string>
-    <string name="reset_defaults_description">Alapértelmezés visszaállítása a következőhöz:</string>
     <string name="electric_dial_frame_desc">Villanyóra kép keret</string>
     <string name="gas_dial_frame_desc">Gázóra kép keret</string>
     <string name="error_details_dropdown_desc">Hiba részletek lenyíló menü</string>
-    <string name="gas_config_title">Gázóra beállítások</string>
-    <string name="electric_config_title">Villanyóra beállítások</string>
-    <string name="config_red_dial_frame_title">Vörös keret meghatározása</string>
-    <string name="config_last_digit_frame_title">Utolsó számjegy meghatározása</string>
 </resources>
