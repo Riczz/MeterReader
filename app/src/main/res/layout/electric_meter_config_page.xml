@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+    android:layout_height="match_parent">
 
     <TextView
         android:id="@+id/electricConfigTextView"
@@ -40,7 +40,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="5dp"
                 android:layout_marginBottom="5dp"
-                android:text="@string/config_last_digit_frame_title"
+                android:text="@string/setting_header_last_digit_frame"
                 android:textAlignment="center"
                 android:textAllCaps="true"
                 android:textColor="@color/cardview_dark_background"
@@ -55,10 +55,10 @@
             <com.riczz.meterreader.view.SettingSliderComponent
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                app:infoDescription="@string/info_sigmaX"
-                app:meterType="ELECTRIC"
-                app:propertyName="Minimális kontúr terület (px):"
                 app:dbColumnName="min_dial_area"
+                app:infoDescription="@string/setting_min_dial_area_info_electric"
+                app:meterType="ELECTRIC"
+                app:propertyName="@string/setting_min_dial_area"
                 app:stepSize="1.0"
                 app:valueMax="10000.0"
                 app:valueMin="300.0" />
@@ -66,32 +66,32 @@
             <com.riczz.meterreader.view.SettingSliderComponent
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                app:infoDescription="@string/info_sigmaX"
-                app:propertyName="Minimális téglalapszerűség (%):"
                 app:dbColumnName="min_rectangularity"
+                app:infoDescription="@string/setting_min_rectangularity_info"
                 app:meterType="ELECTRIC"
+                app:propertyName="@string/setting_min_rectangularity"
                 app:stepSize="0.01"
-                app:valueMin="0.0"
-                app:valueMax="1.0" />
+                app:valueMax="1.0"
+                app:valueMin="0.0" />
 
             <com.riczz.meterreader.view.SettingSliderComponent
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                app:infoDescription="@string/info_sigmaX"
-                app:propertyName="Vörös keret hosszabbítás szorzó:"
                 app:dbColumnName="dial_frame_width_multiplier"
+                app:infoDescription="@string/setting_dial_frame_width_multiplier_info_electric"
                 app:meterType="ELECTRIC"
+                app:propertyName="@string/setting_dial_frame_width_multiplier"
                 app:stepSize="0.01"
-                app:valueMin="0.0"
-                app:valueMax="20.0" />
+                app:valueMax="20.0"
+                app:valueMin="0.0" />
 
             <com.riczz.meterreader.view.SettingSliderComponent
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                app:infoDescription="@string/info_sigmaX"
-                app:propertyName="Maximális dőlésszög (fok):"
-                app:meterType="ELECTRIC"
                 app:dbColumnName="max_skewness_deg"
+                app:infoDescription="@string/setting_max_skewness_deg_info_electric"
+                app:meterType="ELECTRIC"
+                app:propertyName="@string/setting_max_skewness_deg"
                 app:stepSize="1.0"
                 app:valueMax="45.0"
                 app:valueMin="0.0" />
@@ -99,13 +99,13 @@
             <com.riczz.meterreader.view.SettingSliderComponent
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                app:infoDescription="@string/info_sigmaX"
-                app:propertyName="Maximális vonal távolság:"
                 app:dbColumnName="max_line_distance"
+                app:infoDescription="@string/setting_max_line_distance_info"
                 app:meterType="ELECTRIC"
+                app:propertyName="@string/setting_max_line_distance"
                 app:stepSize="1.0"
-                app:valueMin="0.0"
-                app:valueMax="30.0" />
+                app:valueMax="30.0"
+                app:valueMin="0.0" />
 
             <View
                 android:layout_width="match_parent"
@@ -117,7 +117,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="5dp"
                 android:layout_marginBottom="5dp"
-                android:text="Számlapkeret keresése"
+                android:text="@string/setting_header_search_dials"
                 android:textAlignment="center"
                 android:textAllCaps="true"
                 android:textColor="@color/cardview_dark_background"
@@ -132,10 +132,10 @@
             <com.riczz.meterreader.view.SettingSliderComponent
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                app:infoDescription="@string/info_sigmaX"
-                app:propertyName="Keret kiterjesztés érzékenysége:"
-                app:meterType="ELECTRIC"
                 app:dbColumnName="max_black_intensity_ratio"
+                app:infoDescription="@string/setting_max_black_intensity_ratio_info_electric"
+                app:meterType="ELECTRIC"
+                app:propertyName="@string/setting_max_black_intensity_ratio"
                 app:stepSize="0.01"
                 app:valueMax="1.0"
                 app:valueMin="0.0" />
@@ -143,10 +143,10 @@
             <com.riczz.meterreader.view.SettingSliderComponent
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                app:infoDescription="@string/info_sigmaX"
-                app:propertyName="Keret kiterjesztés nagysága (%):"
-                app:meterType="ELECTRIC"
                 app:dbColumnName="digit_frame_extension_multiplier"
+                app:infoDescription="@string/setting_digit_frame_extension_multiplier_info"
+                app:meterType="ELECTRIC"
+                app:propertyName="@string/setting_digit_frame_extension_multiplier"
                 app:stepSize="0.01"
                 app:valueMax="5.0"
                 app:valueMin="1.0" />
@@ -154,10 +154,10 @@
             <com.riczz.meterreader.view.SettingSliderComponent
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                app:infoDescription="@string/info_sigmaX"
-                app:propertyName="Keret kiterjesztés iteráció limit:"
                 app:dbColumnName="digit_frame_max_extension_count"
+                app:infoDescription="@string/setting_digit_frame_max_extension_count_info"
                 app:meterType="ELECTRIC"
+                app:propertyName="@string/setting_digit_frame_max_extension_count"
                 app:stepSize="1.0"
                 app:valueMax="10.0"
                 app:valueMin="0.0" />
@@ -172,7 +172,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="5dp"
                 android:layout_marginBottom="5dp"
-                android:text="Színkorrekció"
+                android:text="@string/setting_header_color_correction"
                 android:textAlignment="center"
                 android:textAllCaps="true"
                 android:textColor="@color/cardview_dark_background"
@@ -187,17 +187,18 @@
             <com.riczz.meterreader.view.SettingCheckBoxComponent
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                app:meterType="ELECTRIC"
                 app:dbColumnName="use_color_correction"
-                app:propertyName="Színkorrekció alkalmazása:" />
+                app:infoDescription="@string/setting_color_correction_info"
+                app:meterType="ELECTRIC"
+                app:propertyName="@string/setting_color_correction" />
 
             <com.riczz.meterreader.view.SettingSliderComponent
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                app:infoDescription="@string/info_sigmaX"
-                app:propertyName="Gamma:"
                 app:dbColumnName="gamma_multiplier"
+                app:infoDescription="@string/setting_gamma_info"
                 app:meterType="ELECTRIC"
+                app:propertyName="@string/setting_gamma"
                 app:stepSize="0.01"
                 app:valueMax="10.0"
                 app:valueMin="-10.0" />
@@ -212,7 +213,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="5dp"
                 android:layout_marginBottom="5dp"
-                android:text="Számjegy detekció"
+                android:text="@string/setting_header_dial_detection"
                 android:textAlignment="center"
                 android:textAllCaps="true"
                 android:textColor="@color/cardview_dark_background"
@@ -227,10 +228,10 @@
             <com.riczz.meterreader.view.SettingSliderComponent
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                app:infoDescription="@string/info_sigmaX"
-                app:propertyName="Számjegy max. szélesség (%):"
                 app:dbColumnName="digit_max_width_ratio"
+                app:infoDescription="@string/setting_digit_max_width_ratio_info"
                 app:meterType="ELECTRIC"
+                app:propertyName="@string/setting_digit_max_width_ratio"
                 app:stepSize="0.01"
                 app:valueMax="1.0"
                 app:valueMin="0.0" />
@@ -238,10 +239,10 @@
             <com.riczz.meterreader.view.SettingSliderComponent
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                app:infoDescription="@string/info_sigmaX"
-                app:propertyName="Számjegy max. magasság (%):"
                 app:dbColumnName="digit_max_height_ratio"
+                app:infoDescription="@string/setting_digit_max_height_ratio_info"
                 app:meterType="ELECTRIC"
+                app:propertyName="@string/setting_digit_max_height_ratio"
                 app:stepSize="0.01"
                 app:valueMax="1.0"
                 app:valueMin="0.0" />
@@ -249,10 +250,10 @@
             <com.riczz.meterreader.view.SettingSliderComponent
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                app:infoDescription="@string/info_sigmaX"
-                app:propertyName="Számjegy magasság/szélesség arány min. (%):"
                 app:dbColumnName="digit_height_width_ratio_min"
+                app:infoDescription="@string/setting_digit_height_width_ratio_min_info"
                 app:meterType="ELECTRIC"
+                app:propertyName="@string/setting_digit_height_width_ratio_min"
                 app:stepSize="0.01"
                 app:valueMax="10.0"
                 app:valueMin="0.0" />
@@ -260,10 +261,10 @@
             <com.riczz.meterreader.view.SettingSliderComponent
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                app:infoDescription="@string/info_sigmaX"
-                app:propertyName="Számjegy magasság/szélesség arány max. (%):"
                 app:dbColumnName="digit_height_width_ratio_max"
+                app:infoDescription="@string/setting_height_width_ratio_max_info"
                 app:meterType="ELECTRIC"
+                app:propertyName="@string/setting_height_width_ratio_max"
                 app:stepSize="0.01"
                 app:valueMax="10.0"
                 app:valueMin="0.0" />
@@ -271,10 +272,10 @@
             <com.riczz.meterreader.view.SettingSliderComponent
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                app:infoDescription="@string/info_sigmaX"
-                app:propertyName="Kontúr távolság a szélektől min. (%):"
                 app:dbColumnName="digit_min_border_dist"
+                app:infoDescription="@string/setting_digit_min_border_dist_info"
                 app:meterType="ELECTRIC"
+                app:propertyName="@string/setting_digit_min_border_dist"
                 app:stepSize="0.01"
                 app:valueMax="1.0"
                 app:valueMin="0.0" />
@@ -282,10 +283,10 @@
             <com.riczz.meterreader.view.SettingSliderComponent
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                app:infoDescription="@string/info_sigmaX"
-                app:propertyName="Kontúr levágási keret vastagsága:"
                 app:dbColumnName="digit_black_border_thickness"
+                app:infoDescription="@string/setting_digit_black_border_thickness_info"
                 app:meterType="ELECTRIC"
+                app:propertyName="@string/setting_digit_black_border_thickness"
                 app:stepSize="0.001"
                 app:valueMax="1.0"
                 app:valueMin="0.0" />

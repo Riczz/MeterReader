@@ -43,10 +43,7 @@
         app:layout_constraintBottom_toTopOf="@id/retryRecognitionButton"
         app:layout_constraintEnd_toStartOf="@id/nextConfigArrow"
         app:layout_constraintStart_toEndOf="@id/previousConfigArrow"
-        app:layout_constraintTop_toTopOf="parent">
-
-<!--        <include layout="@layout/gas_meter_config_page" />-->
-    </ViewFlipper>
+        app:layout_constraintTop_toTopOf="parent" />
 
     <Button
         android:id="@+id/retryRecognitionButton"

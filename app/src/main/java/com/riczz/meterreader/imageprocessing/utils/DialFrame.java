@@ -7,12 +7,9 @@ import org.opencv.imgproc.Imgproc;
 
 public final class DialFrame {
     private final MatOfPoint contour;
-
-    private final double perimeter;
-
-    private final double area;
-
     private final RotatedRect minAreaRect;
+    private final double perimeter;
+    private final double area;
 
     public DialFrame(MatOfPoint contour) {
         this.contour = contour;

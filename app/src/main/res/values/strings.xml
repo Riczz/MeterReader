@@ -76,10 +76,85 @@
     <string name="setting_gamma">Gamma:</string>
 
     <!--  Parameter descriptions  -->
-    <string name="info_sigmaX">
-        Teszt leírás\n
-        Ez lesz majd kitöltve a leírással\n
-        Lorem ipsum dolor sit amet
+    <string name="setting_min_dial_area_info">
+        A vörös keret befoglaló kontúrjának területe legalább ennyi pixel kell, hogy legyen.\n\n
+        Az ettől kisebb területtel rendelkező kontúrok ki lesznek szűrve.
+    </string>
+    <string name="setting_min_dial_area_info_electric">
+        Az utolsó (vörös hátterű) számjegy befoglaló kontúrjának területe legalább ennyi pixel kell, hogy legyen.\n\n
+        Az ettől kisebb területtel rendelkező kontúrok ki lesznek szűrve.
+    </string>
+    <string name="setting_min_rectangularity_info">
+        Az utolsó (vörös hátterű) számjegy befoglaló kontúrjának minimális téglalapszerűsége.\n\n
+        Az ennél kisebb téglalapszerűségi értékkel rendelkező kontúrok ki lesznek szűrve.
+    </string>
+    <string name="setting_max_circularity_info">
+        A vörös keret befoglaló kontúrjának maximális körszerűsége.\n\n
+        Az ennél nagyobb körszerűségi értékkel rendelkező kontúrok ki lesznek szűrve.
+    </string>
+    <string name="setting_dial_frame_width_multiplier_info">
+        A detektált vörös keret befoglaló téglalapjának szélessége ezzel az arányszámmal lesz megszorozva.\n\n
+        Ideális esetben egy olyan téglalapot kell kapnunk, ami lefedi az összes (többi) számjegyet.
+    </string>
+    <string name="setting_dial_frame_width_multiplier_info_electric">
+        A detektált utolsó (vörös hátterű) számjegy befoglaló téglalapjának szélessége ezzel az arányszámmal lesz megszorozva.\n\n
+        Ideális esetben egy olyan téglalapot kell kapnunk, ami lefedi az összes (többi) számjegyet.
+    </string>
+    <string name="setting_max_skewness_deg_info">
+        Az eredeti képen lévő vörös keret dőlésszöge ennyivel térhet el a vízszintestől.
+    </string>
+    <string name="setting_max_skewness_deg_info_electric">
+        Az eredeti képen a mérőóra maximális dőlésszöge a vízszinteshez képest.\n\n
+        Ha a dőlésszög ennél nagyobb, sikertelen lesz a mérőhely detekciója.
+    </string>
+    <string name="setting_max_line_distance_info">
+        Két vonal középpontjának maximális távolsága (Euklideszi).\n\n
+        Az egymástól legfeljebb ennyi távolságra lévő vonalak "összevonásra" kerülnek, helyettük egy interpolációval kapott vonal lesz felvéve.
+    </string>
+    <string name="setting_max_black_intensity_ratio_info">
+        Ha a vörös keretet befoglaló téglalap nyújtás után sem fedi le az összes számjegyet, további kiterjesztésre van szükség.\n\n
+        Egy iteráció akkor kerül végrehajtásra, ha a téglalap alatti sötét pixelek aránya ettől az értéktől nagyobb.
+    </string>
+    <string name="setting_max_black_intensity_ratio_info_electric">
+        Ha az utolsó (vörös hátterű) számjegy befoglaló téglalapja nyújtás után sem fedi le az összes számjegyet, további kiterjesztésre van szükség.\n\n
+        Egy iteráció akkor kerül végrehajtásra, ha a téglalap alatti sötét pixelek aránya ettől az értéktől nagyobb.
+    </string>
+    <string name="setting_digit_frame_extension_multiplier_info">
+        Iterációnként ezzel az aránnyal nő meg a számlapkeretet befoglaló téglalap szélessége.
+    </string>
+    <string name="setting_digit_frame_max_extension_count_info">
+        Ez a paraméter mondja meg, hogy maximálisan hányszor lehet kiterjeszteni a számlapkeretet befoglaló téglalapot.
+    </string>
+    <string name="setting_color_correction_info">
+        Színkorrekció alkalmazása a számplapkeret kivetített képén a számjegyek detektálása előtt (Opcionális).\n\n
+        Rossz fényviszonyok mellett készült kép esetén ajánlott a használata.
+    </string>
+    <string name="setting_gamma_info">A színkorrekció során a gamma kitevő értéke.</string>
+    <string name="setting_digit_max_width_ratio_info">
+        Egy számjegyet tartalmazó kontúr szélessége hány százalékát foglalhatja el maximum a számlapkeret kivetített képének szélességének.\n
+        Az ennél szélesebb kontúrok ki lesznek szűrve.\n\n
+        Ideális esetben pl. egy jó beállítás lehet 8 számjegyű számlap esetében 1/8=0.125
+    </string>
+    <string name="setting_digit_max_height_ratio_info">
+        Egy számjegyet tartalmazó kontúr magassága hány százalékát foglalja el maximum a számlapkeret kivetített képének magasságának\n
+        Az ennél magasabb kontúrok ki lesznek szűrve.\n\n
+        A kivetített kép teteje és alja ideális esetben a számlap fekete sávjának szélei.
+    </string>
+    <string name="setting_digit_height_width_ratio_min_info">
+        Egy számjegyet tartalmazó kontúr magasságának aránya minimálisan mennyi kell legyen a szélességéhez képest.\n\n
+        Az ettől eltérő értékkel rendelkező kontúrok ki lesznek szűrve.
+    </string>
+    <string name="setting_height_width_ratio_max_info">
+        Egy számjegyet tartalmazó kontúr magasságának aránya maximálisan mennyi kell legyen a szélességéhez képest.\n\n
+        Az ettől eltérő értékkel rendelkező kontúrok ki lesznek szűrve.
+    </string>
+    <string name="setting_digit_min_border_dist_info">
+        Egy számjegyet tartalmazó kontúr minimális távolsága a kivetített kép széleitől \n\n
+        (alsó-felső és bal-jobb szélek esetében eltérő lesz az eredmény).
+    </string>
+    <string name="setting_digit_black_border_thickness_info">
+        A számjegyeket tartalmazó kontúrok ideális esetben a kivetített kép közepén helyezkednek el.\n\n
+        A kontúrok szűrésének egy módja, ha a kép széleihez közeli részt kimaszkoljuk, ezzel a paraméterrel állítható a maszkolás vastagsága.
     </string>
 
     <!--  Result image categories  -->

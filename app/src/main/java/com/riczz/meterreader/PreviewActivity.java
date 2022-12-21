@@ -248,16 +248,6 @@ public final class PreviewActivity extends AppCompatActivity {
             LinearLayout resetConfigView = new LinearLayout(this);
             resetConfigView.setOrientation(LinearLayout.VERTICAL);
 
-            LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT,
-                    LinearLayout.LayoutParams.MATCH_PARENT
-            );
-            layoutParams.setMargins(
-                    getResources().getDimensionPixelSize(R.dimen.reset_config_margin_start_dp), 0,
-                    getResources().getDimensionPixelSize(R.dimen.reset_config_margin_end_dp), 0
-            );
-            resetConfigView.setLayoutParams(layoutParams);
-
             // Checkbox color values
             int [][] states = {{android.R.attr.state_checked}, {}};
             int greenColorId = getColor(R.color.green_400);
@@ -300,6 +290,11 @@ public final class PreviewActivity extends AppCompatActivity {
                     );
                 }
             });
+
+            resetConfigView.setPadding(
+                    getResources().getDimensionPixelSize(R.dimen.reset_config_margin_start_dp), 0,
+                    getResources().getDimensionPixelSize(R.dimen.reset_config_margin_end_dp), 0
+            );
 
             resetDefaultsButton.setOnClickListener(button -> {
                 if(resetConfigView.getParent() != null) {
