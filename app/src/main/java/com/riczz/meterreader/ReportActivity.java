@@ -21,19 +21,26 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.constraintlayout.widget.ConstraintSet;
 import androidx.core.app.ActivityCompat;
+import androidx.documentfile.provider.DocumentFile;
 
 import com.google.android.material.button.MaterialButton;
 import com.riczz.meterreader.database.DBHandler;
 import com.riczz.meterreader.database.model.Config;
 import com.riczz.meterreader.enums.ImageType;
 import com.riczz.meterreader.enums.MeterType;
+import com.riczz.meterreader.imageprocessing.ImageHandler;
 import com.riczz.meterreader.view.ImageCategoryViewer;
 
 import org.apache.commons.lang3.StringUtils;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.text.DecimalFormatSymbols;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -44,6 +51,7 @@ public final class ReportActivity extends AppCompatActivity {
     public static final char DECIMAL_SEPARATOR = DecimalFormatSymbols.getInstance().getDecimalSeparator();
     private static final int REQUEST_WRITE_STORAGE_PERMISSION = 501;
     private static final int REQUEST_CAMERA_PERMISSION = 500;
+    private static final int REQUEST_PICK_SAVE_FOLDER = 403;
     private static final int ANALYZE_TAKEN_IMAGE = 402;
     private static final int REQUEST_TAKE_PHOTO = 401;
     private static final int REQUEST_PICK_IMAGE = 400;
@@ -52,6 +60,7 @@ public final class ReportActivity extends AppCompatActivity {
     private ConstraintLayout reportConstraintLayout;
     private MaterialButton galleryButton;
     private MaterialButton takePhotoButton;
+    private MaterialButton sendReportButton;
     private ImageCategoryViewer previewImageViewer;
     private List<NumberPicker> dials = new ArrayList<>();
 
@@ -76,6 +85,7 @@ public final class ReportActivity extends AppCompatActivity {
 
         takePhotoButton = findViewById(R.id.takePhotoButton);
         galleryButton = findViewById(R.id.galleryButton);
+        sendReportButton = findViewById(R.id.sendReportButton);
         reportConstraintLayout = findViewById(R.id.reportConstraintLayout);
         setupDials();
 
@@ -103,6 +113,12 @@ public final class ReportActivity extends AppCompatActivity {
             Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
             intent.putExtra(MediaStore.EXTRA_OUTPUT, previewImageUri);
             startActivityForResult(intent, REQUEST_TAKE_PHOTO);
+        });
+
+        sendReportButton.setOnClickListener(button -> {
+            Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
+            intent.addCategory(Intent.CATEGORY_DEFAULT);
+            startActivityForResult(Intent.createChooser(intent, "Choose directory"), REQUEST_PICK_SAVE_FOLDER);
         });
     }
 
@@ -135,6 +151,7 @@ public final class ReportActivity extends AppCompatActivity {
                 if (null != previewImageViewer) removePreview();
                 if (data.hasExtra("DIALS_VALUE")) {
                     setDialValues(data.getDoubleExtra("DIALS_VALUE", 0.0d));
+                    sendReportButton.setEnabled(true);
                     addPreview();
                 } else {
                     Toast.makeText(this,
@@ -142,8 +159,58 @@ public final class ReportActivity extends AppCompatActivity {
                             Toast.LENGTH_SHORT
                     ).show();
                 }
+                break;
+            case REQUEST_PICK_SAVE_FOLDER:
+                if (null == previewImageViewer || data == null) break;
+
+                SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault());
+                DocumentFile pickedDir = DocumentFile.fromTreeUri(this, data.getData());
+                DocumentFile targetFolder = pickedDir.createDirectory("METER_READINGS_" + dateFormat.format(new Date()));
+
+                if (targetFolder == null) {
+                    Toast.makeText(this, getString(R.string.send_report_failed), Toast.LENGTH_SHORT).show();
+                    break;
+                }
+
+                ImageHandler imageHandler = new ImageHandler(this);
+                copyFolder(DocumentFile.fromFile(imageHandler.getStorageDir()), targetFolder);
+                Toast.makeText(this, getString(R.string.send_report_success), Toast.LENGTH_SHORT).show();
             default:
                 break;
+        }
+    }
+
+    private void copyFolder(DocumentFile sourceFolder, DocumentFile destinationFolder) {
+        if (sourceFolder.equals(destinationFolder) || !sourceFolder.exists() ||
+                !sourceFolder.canRead() || !sourceFolder.isDirectory()) {
+            return;
+        }
+
+        DocumentFile[] files = sourceFolder.listFiles();
+
+        for (DocumentFile file : files) {
+            if (file.isDirectory()) {
+                copyFolder(file, destinationFolder.createDirectory(file.getName()));
+            } else {
+                DocumentFile destination = destinationFolder.createFile(file.getType(), file.getName());
+
+                try (InputStream inputStream = getContentResolver().openInputStream(file.getUri())) {
+                    OutputStream outputStream = getContentResolver().openOutputStream(destination.getUri());
+
+                    if (outputStream != null) {
+                        byte[] buffer = new byte[1024];
+                        int length;
+                        while ((length = inputStream.read(buffer)) > 0) {
+                            outputStream.write(buffer, 0, length);
+                        }
+                        outputStream.flush();
+                        outputStream.close();
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    return;
+                }
+            }
         }
     }
 

@@ -23,7 +23,9 @@
     <string name="results_description_elec">Sikeres mérőóra leolvasás!\nA dekektált érték: %1$.1f</string>
     <string name="intent_data_error">Hiba történt az adatok kiolvasása közben.</string>
     <string name="take_photo">Fénykép készítése</string>
-    <string name="send_report">Mérőállás rögzítése</string>
+    <string name="send_report">Eredmények mentése</string>
+    <string name="send_report_success">Eredmények mentése sikeres.</string>
+    <string name="send_report_failed">Hiba történt az eredmények mentése közben.</string>
     <string name="retry">Próbálkozás újból</string>
     <string name="result_images">Eredményképek</string>
     <string name="reset_defaults">Alapértelmezett beállítások</string>

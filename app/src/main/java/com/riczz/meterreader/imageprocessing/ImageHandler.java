@@ -108,7 +108,7 @@ public final class ImageHandler implements IImageHandler {
         return new File(parentFolder, fileName + "." + COMPRESS_FORMAT.name().toLowerCase(Locale.ROOT));
     }
 
-    private File getStorageDir() {
+    public File getStorageDir() {
         File directory;
 
         if (external) {
