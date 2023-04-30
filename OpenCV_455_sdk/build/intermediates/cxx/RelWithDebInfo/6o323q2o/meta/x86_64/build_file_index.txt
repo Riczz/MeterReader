@@ -1,1 +1,0 @@
-C:\Users\csino\AndroidStudioProjects\MeterReader\OpenCV_455_sdk\libcxx_helper\CMakeLists.txt

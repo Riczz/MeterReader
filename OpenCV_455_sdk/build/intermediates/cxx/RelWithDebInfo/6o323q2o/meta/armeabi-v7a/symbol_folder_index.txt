@@ -1,1 +1,0 @@
-C:\Users\csino\AndroidStudioProjects\MeterReader\OpenCV_455_sdk\build\intermediates\cxx\RelWithDebInfo\6o323q2o\obj\armeabi-v7a
